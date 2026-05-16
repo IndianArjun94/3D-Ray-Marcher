@@ -8,7 +8,7 @@ public class Ray {
     public double px, py;
 
     public double dx, dy, dz; // dir
-    public double stepSize = 0.01;
+    public double stepSize = 0.000001;
 
     public double FOV;
 
@@ -26,12 +26,12 @@ public class Ray {
         /*
         * sets the direction of the rays (x, y)
         * Aspect ratio 1:1, why?
-        * the formulas scale to: -1 to 1 for BOTH x and y, REGARDLESS fo the Width and Height
+        * the formulas scale to: -1 to 1 for BOTH x and y, REGARDLESS of the Width and Height
         *
         * */
 
         // 2. aspect ratio
-        _dx *= (W / H); // this changes the ASPECT RATIO to match the window size
+        _dx *= (W / H); // this changes the ASPECT RATIO to match the window size (example: _dx range: -1 to 1 -> -1.4 to 1.4)
 
         // 3. apply FOV
         double fovScale = Math.tan(Math.toRadians(FOV / 2));

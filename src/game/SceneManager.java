@@ -1,5 +1,7 @@
 package game;
 
+import java.sql.SQLOutput;
+
 import static game.Window.RGB.rgb;
 
 public class SceneManager implements Runnable {
@@ -34,16 +36,19 @@ public class SceneManager implements Runnable {
 
         while (running) {
 
+            int rayCounter = 0;
             for (Ray ray : rays) {
+                System.out.println(rayCounter);
 
                 ray.resetPos();
 
-                for (int i = 0; i < 2000; i++) { // max steps
+                for (int i = 0; i < 20000000; i++) { // max steps
 
                     ray.tick();
 
-                    if (sceneObjects[0].distance(ray.x, ray.y, ray.z) < MIN_DIST) {
-                        window.innerGameRenderer.setPixel((int)ray.px, (int)ray.py, rgb(255, 0, 0));
+                    if (sceneObjects[0].distance(ray.x, ray.y, ray.z) < MIN_DIST) { // replace to loop through all scene objects
+                        window.innerGameRenderer.setPixel((int)ray.px, (int)ray.py, rgb((int) Math.abs((ray.z+1.9) * 255), (int) Math.abs((ray.z+1.9) * 255), (int) Math.abs((ray.z+1.9) * 255)));
+                            System.out.println("hit!");
                     }
 
 //                    if (ray.x <= size && ray.x >= -size &&
@@ -60,6 +65,7 @@ public class SceneManager implements Runnable {
                         break;
                     }
                 }
+                rayCounter++;
             }
 
         }
