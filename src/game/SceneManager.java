@@ -47,7 +47,7 @@ public class SceneManager implements Runnable {
 
                 for (SceneObject object : sceneObjects) {
                     if (object.distance(ray.getPos()) < MIN_DIST) { // replace to loop through all scene objects
-                        ray.reflect(object);
+//                        ray.reflect(object);
                         hit = true;
 
                         // shadow ray logic ------------------------------------

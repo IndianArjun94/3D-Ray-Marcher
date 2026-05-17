@@ -24,9 +24,10 @@ public class Plane implements SceneObject {
         if (normal.dot(dir) > 0) {
             return new Vec3(normal).multiply(-1);
         } else if (normal.dot(dir) < 0) {
-            return normal;
+            return new Vec3(normal);
         } else {
-            return null;
+            return new Vec3(normal).multiply(-1);
+//            return null;
         }
     }
 
