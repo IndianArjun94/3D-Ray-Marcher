@@ -1,6 +1,5 @@
 package game;
 
-import java.io.PushbackInputStream;
 import java.util.ArrayList;
 
 public class SceneManager implements Runnable {
@@ -18,7 +17,7 @@ public class SceneManager implements Runnable {
                 this.primaryRays.add(new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255)));
             }
         }
-        this.sceneObjects.add(new Sphere(new Vec3(-0.5, -0.5, -3), 1.3, new Vec3(255, 100, 100), 0.5));
+        this.sceneObjects.add(new Sphere(new Vec3(0.5, -0.5, -3), 1.3, new Vec3(255, 100, 100), 0.5));
         this.sceneObjects.add(new Sphere(new Vec3(-0.5, 0.5, -1.5), 0.5, new Vec3(100, 100, 255), 0.5));
 //        this.sceneObjects.add(new Plane(new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(255, 255, 255), 0));
         this.sceneLights.add(new LightPoint(new Vec3(-1, 1, 0), new Vec3(255, 125, 255), 1));
@@ -31,8 +30,9 @@ public class SceneManager implements Runnable {
     }
 
     public void run() {
-        final float MIN_DIST = 0.001f;
+        final double MIN_DIST = 0.001f;
         final int MAX_STEPS = 4000;
+        final double EPSILON = 0.01f;
 
         int rayCounter = 0;
         for (Ray ray : primaryRays) {
@@ -57,9 +57,9 @@ public class SceneManager implements Runnable {
                             Ray shadowRay = new Ray(ray);
                             shadowRay.setColor(light.getColor());
 
-                            while (object.distance(shadowRay.getPos()) <= MIN_DIST) { // make sure the shadow ray is not already touching the object
-                                shadowRay.tick();
-                            }
+                            Vec3 normal = object.normal(shadowRay.getPos());
+
+                            shadowRay.getPos().add(normal.multiply(EPSILON));
 
                             Vec3 newDir = new Vec3(light.normal(shadowRay.getPos()));
                             shadowRay.setDir(newDir); // make the ray face the light
