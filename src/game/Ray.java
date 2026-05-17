@@ -1,17 +1,17 @@
 package game;
 
 public class Ray {
-    public Vec3 pos = new Vec3(0,0,0);
+    private Vec3 pos = new Vec3(0,0,0);
 
-    public double px, py;
+    private double px, py;
 
-    public Vec3 originalDir;
-    public Vec3 dir;
-    public double stepSize = 0.01;
+    private Vec3 originalDir;
+    private Vec3 dir;
+    private double stepSize = 0.01;
 
-    public Vec3 throughputColor = new Vec3(0,0,0);
+    private Vec3 color;
 
-    public Ray(int px, int py, double W, double H, double FOV) {
+    public Ray(int px, int py, double W, double H, double FOV, Vec3 color) {
         this.px = px;
         this.py = py;
 
@@ -52,6 +52,8 @@ public class Ray {
          */
 
         dir = new Vec3(originalDir);
+
+        this.color = color;
     }
 
     public void tick() {
@@ -66,7 +68,7 @@ public class Ray {
         pos = new Vec3(0,0,0);
     }
 
-    public void reflect(Vec3 normal) {
+    public void reflect(SceneObject object) {
         /* D = (dx,dy,dz) | incoming direction
          * N = -> double[] normal | surface normal
          *
@@ -83,8 +85,50 @@ public class Ray {
          * imagine a ray bouncing off your desk at an angle, the dx or dz won't change, just the dy, because your desk's normal only has a ny.
          */
 
-
-        dir.reflect(normal);
+        dir.reflect(object.normal(pos));
     }
 
+    public void updateLight(SceneObject object, SceneLight light) {
+        Vec3 N = object.normal(pos);
+        Vec3 L = light.normal(pos);
+
+        double I = Math.max(0, N.dot(L));
+
+        color.multiply(object.getColor()).multiply(I);
+
+    }
+
+    // getters and setters
+
+    public Vec3 getPos() {
+        return pos;
+    }
+
+    public void setPos(Vec3 pos) {
+        this.pos = pos;
+    }
+
+    public double getPx() {
+        return px;
+    }
+
+    public void setPx(double px) {
+        this.px = px;
+    }
+
+    public double getPy() {
+        return py;
+    }
+
+    public void setPy(double py) {
+        this.py = py;
+    }
+
+    public Vec3 getColor() {
+        return color;
+    }
+
+    public void setColor(Vec3 color) {
+        this.color = color;
+    }
 }

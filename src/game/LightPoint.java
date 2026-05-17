@@ -1,16 +1,14 @@
 package game;
 
-public class Sphere implements SceneObject {
+public class LightPoint implements SceneLight {
     private Vec3 pos;
-    private double r;
     private Vec3 color;
-    private double roughness;
+    private double brightness;
 
-    public Sphere(Vec3 pos, double r, Vec3 rgb, double roughness) {
+    public LightPoint(Vec3 pos, Vec3 rgb, double brightness) {
         this.pos = pos;
-        this.r = r;
-        this.color = rgb;
-        this.roughness = roughness;
+        this.color = rgb.divide(255);
+        this.brightness = brightness;
     }
 
     public double distance(Vec3 pos) {
@@ -18,10 +16,10 @@ public class Sphere implements SceneObject {
 
         distance.subtract(this.pos);
 
-        return distance.length() - r;
+        return distance.length();
     }
 
-    public Vec3 normal(Vec3 pos) {
+    public Vec3 normal(Vec3 pos) { // uses sphere logic
         Vec3 normal = new Vec3(pos);
 
         normal.subtract(this.pos);
@@ -41,21 +39,19 @@ public class Sphere implements SceneObject {
 
     }
 
-    // getters and setters
-
-    public double getRoughness() {
-        return roughness;
-    }
-
-    public void setRoughness(double roughness) {
-        this.roughness = roughness;
-    }
-
     public Vec3 getColor() {
         return color;
     }
 
-    public void setColor(Vec3 color) {
+    public void setColor(Vec3 rgb) {
         this.color = color;
+    }
+
+    public double getBrightness() {
+        return brightness;
+    }
+
+    public void setBrightness(double brightness) {
+        this.brightness = brightness;
     }
 }

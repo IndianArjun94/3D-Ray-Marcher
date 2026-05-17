@@ -7,18 +7,19 @@ public class SceneManager implements Runnable {
     public Window window;
     public Ray[] rays;
     public ArrayList<SceneObject> sceneObjects = new ArrayList<>();
+    public ArrayList<SceneLight> sceneLights = new ArrayList<>();
     public Thread thread;
-    public boolean running = true;
 
     public SceneManager(Window window) {
         this.window = window;
         this.rays = new Ray[window.WIDTH * window.HEIGHT];
         for (int x = 0; x < window.WIDTH; x++) {
             for (int y = 0; y < window.HEIGHT; y++) {
-                this.rays[x + y * window.WIDTH] = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV);
+                this.rays[x + y * window.WIDTH] = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255));
             }
         }
         this.sceneObjects.add(new Sphere(new Vec3(0, 0, -2), 0.5, new Vec3(255, 100, 100), 0));
+        this.sceneLights.add(new LightPoint(new Vec3(-2, 2, -2), new Vec3(255, 255, 255), 1));
     }
 
     public void start() {
@@ -33,17 +34,29 @@ public class SceneManager implements Runnable {
         int rayCounter = 0;
         for (Ray ray : rays) {
 
-            for (int i = 0; i < 2000; i++) { // max steps
+            boolean hit = false;
+
+            for (int i = 0; i < 2000 && !hit; i++) { // max steps
 
                 ray.tick();
 
-                for (SceneObject obj : sceneObjects) {
-                    if (obj.distance(ray.pos) < MIN_DIST) { // replace to loop through all scene objects
-                        window.innerGameRenderer.setPixel((int) ray.px, (int) ray.py, new Vec3((int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255)));
-//                        ray.reflect(obj.normal(ray.pos));
+                for (SceneObject object : sceneObjects) {
+                    if (object.distance(ray.getPos()) < MIN_DIST) { // replace to loop through all scene objects
+//                        window.innerGameRenderer.setPixel((int) ray.px, (int) ray.py, new Vec3((int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255)));
+                        ray.reflect(object);
+                        hit = true;
+
+                        for (SceneLight light : sceneLights) {
+                            ray.updateLight(object, light);
+                        }
+
+                        break;
                     }
                 }
+            }
 
+            if (hit) {
+                window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), ray.getColor());
             }
 
             rayCounter++;
