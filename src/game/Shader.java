@@ -5,9 +5,11 @@ import java.util.List;
 public class Shader {
     public static double getBrightness(Ray primaryRay, SceneObject object, SceneLight light) {
         Vec3 N = object.normal(primaryRay.getPos());
-        Vec3 L = light.normal(primaryRay.getPos());
+        Vec3 L = light.normal(primaryRay.getPos()).multiply(-1);
 
         double I = Math.max(0, N.dot(L));
+
+        System.out.println(N.dot(L));
 
         return I;
 

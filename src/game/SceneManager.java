@@ -81,10 +81,14 @@ public class SceneManager implements Runnable {
                             }
 
                             if (!isShadowed) {
+//                                System.out.println("shadow ray: r: " + shadowRay.getColor().x + ", g: " + shadowRay.getColor().y + ", b: " + shadowRay.getColor().z);
+
                                 shadowRay.setColor(
                                         new Vec3(shadowRay.getColor()).multiply(
                                                 Shader.getBrightness(ray, object, light)
                                         ));
+
+//                                System.out.println(Shader.getBrightness(ray, object, light));
                                 goodShadowRays.add(shadowRay);
                             }
                         }
@@ -101,11 +105,15 @@ public class SceneManager implements Runnable {
             }
 
             if (hit) {
-                System.out.println("hit");
+//                System.out.println("hit | " + "r: " + finalColor.x + ", g: " + finalColor.y + ", b: " + finalColor.z);
 
                 window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), finalColor);
             } else {
-                System.out.println(rayCounter);
+//                System.out.println(rayCounter);
+            }
+
+            if (ray.getPx() == 0) {
+                window.innerGameRenderer.setPixel(0, (int) ray.getPy(), new Vec3(255, 255, 255));
             }
 
             rayCounter++;
