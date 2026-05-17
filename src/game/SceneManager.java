@@ -34,7 +34,7 @@ public class SceneManager implements Runnable {
         final float size = 0.5f;
         final float MIN_DIST = 0.001f;
 
-        while (running) {
+//        while (running) {
 
             int rayCounter = 0;
             for (Ray ray : rays) {
@@ -42,13 +42,17 @@ public class SceneManager implements Runnable {
 
                 ray.resetPos();
 
-                for (int i = 0; i < 20000000; i++) { // max steps
+                boolean hit = false;
+
+                for (int i = 0; i < 20000; i++) { // max steps
 
                     ray.tick();
 
                     if (sceneObjects[0].distance(ray.x, ray.y, ray.z) < MIN_DIST) { // replace to loop through all scene objects
                         window.innerGameRenderer.setPixel((int)ray.px, (int)ray.py, rgb((int) Math.abs((ray.z+1.9) * 255), (int) Math.abs((ray.z+1.9) * 255), (int) Math.abs((ray.z+1.9) * 255)));
-                            System.out.println("hit!");
+//                            System.out.println("hit!");
+                            hit = true;
+                            break;
                     }
 
 //                    if (ray.x <= size && ray.x >= -size &&
@@ -65,9 +69,12 @@ public class SceneManager implements Runnable {
                         break;
                     }
                 }
+                if (!hit) {
+                    window.innerGameRenderer.setPixel((int) ray.px, (int) ray.py, rgb(255, 100, 255));
+                }
                 rayCounter++;
             }
 
-        }
+//        }
     }
 }
