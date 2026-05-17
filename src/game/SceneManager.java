@@ -1,16 +1,14 @@
 package game;
 
-import java.sql.SQLOutput;
-
-import static game.Window.RGB.rgb;
+import java.util.ArrayList;
 
 public class SceneManager implements Runnable {
 
-    private Window window;
-    private Ray[] rays;
-    private SceneObject[] sceneObjects;
-    private Thread thread;
-    private boolean running = true;
+    public Window window;
+    public Ray[] rays;
+    public ArrayList<SceneObject> sceneObjects = new ArrayList<>();
+    public Thread thread;
+    public boolean running = true;
 
     public SceneManager(Window window) {
         this.window = window;
@@ -20,8 +18,7 @@ public class SceneManager implements Runnable {
                 this.rays[x + y * window.WIDTH] = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV);
             }
         }
-        this.sceneObjects = new SceneObject[100];
-        this.sceneObjects[0] = new Sphere(0, 0, -2, 0.5);
+        this.sceneObjects.add(new Sphere(new Vec3(0, 0, -2), 0.5, new Vec3(255, 100, 100), 0));
     }
 
     public void start() {
@@ -31,50 +28,25 @@ public class SceneManager implements Runnable {
     }
 
     public void run() {
-        final float size = 0.5f;
         final float MIN_DIST = 0.001f;
 
-//        while (running) {
+        int rayCounter = 0;
+        for (Ray ray : rays) {
 
-            int rayCounter = 0;
-            for (Ray ray : rays) {
-                System.out.println(rayCounter);
+            for (int i = 0; i < 2000; i++) { // max steps
 
-                ray.resetPos();
+                ray.tick();
 
-                boolean hit = false;
-
-                for (int i = 0; i < 20000; i++) { // max steps
-
-                    ray.tick();
-
-                    if (sceneObjects[0].distance(ray.x, ray.y, ray.z) < MIN_DIST) { // replace to loop through all scene objects
-                        window.innerGameRenderer.setPixel((int)ray.px, (int)ray.py, rgb((int) Math.abs((ray.z+1.9) * 255), (int) Math.abs((ray.z+1.9) * 255), (int) Math.abs((ray.z+1.9) * 255)));
-//                            System.out.println("hit!");
-                            hit = true;
-                            break;
-                    }
-
-//                    if (ray.x <= size && ray.x >= -size &&
-//                            ray.y <= size && ray.y >= -size &&
-//                            ray.z <= -2 && ray.z >= -4) {
-//
-//                        window.innerGameRenderer.setPixel((int)ray.px, (int)ray.py,
-//                                rgb((int)(
-//                                        Math.sqrt(ray.x*ray.x + ray.y*ray.y * Math.abs(ray.z*ray.z))*255/ray.stepSize), 0, 255));
-//                        break;
-//                    }
-
-                    if (ray.z < -10) {
-                        break;
+                for (SceneObject obj : sceneObjects) {
+                    if (obj.distance(ray.pos) < MIN_DIST) { // replace to loop through all scene objects
+                        window.innerGameRenderer.setPixel((int) ray.px, (int) ray.py, new Vec3((int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255)));
+//                        ray.reflect(obj.normal(ray.pos));
                     }
                 }
-                if (!hit) {
-                    window.innerGameRenderer.setPixel((int) ray.px, (int) ray.py, rgb(255, 100, 255));
-                }
-                rayCounter++;
+
             }
 
-//        }
+            rayCounter++;
+        }
     }
 }

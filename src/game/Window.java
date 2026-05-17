@@ -6,7 +6,6 @@ import java.awt.geom.Dimension2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.lang.reflect.InvocationTargetException;
 
 public class Window {
     public JFrame frame;
@@ -72,8 +71,8 @@ public class Window {
             return new int[]{r,g,b};
         }
 
-        public synchronized void setPixel(int x, int y, RGB rgb) {
-            pixels[(WIDTH*y)+x] = (rgb.r << 16) | (rgb.g << 8) | rgb.b;
+        public synchronized void setPixel(int x, int y, Vec3 rgb) {
+            pixels[(WIDTH*y)+x] = ((int)rgb.x << 16) | ((int)rgb.y << 8) | (int) rgb.z;
         }
 
         public synchronized void setPixel(int x, int y, int pixel) {
@@ -137,17 +136,4 @@ public class Window {
         }
     }
 
-    public static class RGB {
-        public int r;
-        public int g;
-        public int b;
-        private RGB(int r,int g,int b) {
-            this.r = r;
-            this.g = g;
-            this.b = b;
-        }
-        public static RGB rgb(int r,int g,int b) {
-            return new RGB(r,g,b);
-        }
-    }
 }
