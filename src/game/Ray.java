@@ -12,12 +12,12 @@ public class Ray {
     private Vec3 color;
 
     public Ray(Ray ray) {
-        pos = ray.getPos();
+        pos = new Vec3(ray.getPos());
         px = ray.getPx();
         py = ray.getPy();
-        originalDir = ray.getOriginalDir();
-        dir = ray.getDir();
-        color = ray.getColor();
+        originalDir = new Vec3(ray.getOriginalDir());
+        dir = new Vec3(ray.getDir());
+        color = new Vec3(ray.getColor());
     }
 
     public Ray(int px, int py, double W, double H, double FOV, Vec3 color) {
@@ -145,5 +145,9 @@ public class Ray {
 
     public void setDir(Vec3 dir) {
         this.dir = dir;
+    }
+
+    public double getStepSize() {
+        return stepSize;
     }
 }

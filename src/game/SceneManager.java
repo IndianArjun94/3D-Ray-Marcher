@@ -1,5 +1,6 @@
 package game;
 
+import java.io.PushbackInputStream;
 import java.util.ArrayList;
 
 public class SceneManager implements Runnable {
@@ -17,10 +18,10 @@ public class SceneManager implements Runnable {
                 this.primaryRays.add(new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255)));
             }
         }
-        this.sceneObjects.add(new Sphere(new Vec3(0, 0, -2), 0.5, new Vec3(255, 100, 100), 0.5));
-        this.sceneObjects.add(new Sphere(new Vec3(-1, 0, -2), 0.5, new Vec3(100, 100, 255), 0.5));
+        this.sceneObjects.add(new Sphere(new Vec3(-0.5, -0.5, -3), 1.3, new Vec3(255, 100, 100), 0.5));
+        this.sceneObjects.add(new Sphere(new Vec3(-0.5, 0.5, -1.5), 0.5, new Vec3(100, 100, 255), 0.5));
 //        this.sceneObjects.add(new Plane(new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(255, 255, 255), 0));
-        this.sceneLights.add(new LightPoint(new Vec3(-2, 2, -2), new Vec3(255, 255, 255), 1));
+        this.sceneLights.add(new LightPoint(new Vec3(-1, 1, 0), new Vec3(255, 125, 255), 1));
     }
 
     public void start() {
@@ -31,7 +32,7 @@ public class SceneManager implements Runnable {
 
     public void run() {
         final float MIN_DIST = 0.001f;
-        final int MAX_STEPS = 2000;
+        final int MAX_STEPS = 4000;
 
         int rayCounter = 0;
         for (Ray ray : primaryRays) {
@@ -65,8 +66,19 @@ public class SceneManager implements Runnable {
 
                             boolean isShadowed = false;
 
-                            for (int j = i; j < MAX_STEPS; j++) {
+                            Vec3 startPos = new Vec3(shadowRay.getPos());
+                            double distanceToLight = light.distance(shadowRay.getPos());
+
+                            for (int j = 0; j < MAX_STEPS; j++) {
                                 shadowRay.tick();
+
+                                Vec3 travel = new Vec3(shadowRay.getPos());
+                                travel.subtract(startPos);
+
+                                if (travel.length() >= distanceToLight) {
+//                                    System.out.println(light.distance(shadowRay.getPos()));
+                                    break;
+                                }
 
                                 for (SceneObject shadowObject : sceneObjects) {
                                     if (shadowObject.distance(shadowRay.getPos()) <= MIN_DIST) {
@@ -81,22 +93,28 @@ public class SceneManager implements Runnable {
                             }
 
                             if (!isShadowed) {
-//                                System.out.println("shadow ray: r: " + shadowRay.getColor().x + ", g: " + shadowRay.getColor().y + ", b: " + shadowRay.getColor().z);
-
                                 shadowRay.setColor(
                                         new Vec3(shadowRay.getColor()).multiply(
                                                 Shader.getBrightness(ray, object, light)
                                         ));
 
-//                                System.out.println(Shader.getBrightness(ray, object, light));
                                 goodShadowRays.add(shadowRay);
                             }
                         }
 
                         // light logic ------------------------------------
 
+                        Vec3 ambient = new Vec3(object.getColor()).multiply(0.2);
+
+                        finalColor = new Vec3(ambient);
+
                         if (!goodShadowRays.isEmpty()) {
-                            finalColor = Shader.calcColor(object, goodShadowRays);
+                            Vec3 diffuseColor = Shader.calcColor(object, goodShadowRays);
+                            finalColor.add(diffuseColor);
+
+                            finalColor.x = Math.min(255, finalColor.x);
+                            finalColor.y = Math.min(255, finalColor.y);
+                            finalColor.z = Math.min(255, finalColor.z);
                         }
 
                         break;
@@ -105,11 +123,7 @@ public class SceneManager implements Runnable {
             }
 
             if (hit) {
-//                System.out.println("hit | " + "r: " + finalColor.x + ", g: " + finalColor.y + ", b: " + finalColor.z);
-
                 window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), finalColor);
-            } else {
-//                System.out.println(rayCounter);
             }
 
             if (ray.getPx() == 0) {
