@@ -12,7 +12,7 @@ public class Shader {
         return I * light.getBrightness();
     }
 
-    public static Vec3 calcColor(SceneObject object, List<Ray> shadowRays) { // calculate from shadow rays
+    public static Vec3 calcLocalColor(SceneObject object, List<Ray> shadowRays) { // calculate from shadow rays
         Vec3 finalColor = new Vec3(object.getColor());
 
         for (int i = 0; i < shadowRays.size(); i++) {

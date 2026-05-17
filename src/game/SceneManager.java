@@ -77,7 +77,6 @@ public class SceneManager implements Runnable {
                                 travel.subtract(startPos);
 
                                 if (travel.length() >= distanceToLight) {
-//                                    System.out.println(light.distance(shadowRay.getPos()));
                                     break;
                                 }
 
@@ -110,7 +109,7 @@ public class SceneManager implements Runnable {
                         finalColor = new Vec3(ambient);
 
                         if (!goodShadowRays.isEmpty()) {
-                            Vec3 diffuseColor = Shader.calcColor(object, goodShadowRays);
+                            Vec3 diffuseColor = Shader.calcLocalColor(object, goodShadowRays);
                             finalColor.add(diffuseColor);
 
                             finalColor.x = Math.min(255, finalColor.x);
