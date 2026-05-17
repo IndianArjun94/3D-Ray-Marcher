@@ -19,7 +19,7 @@ public class SceneManager implements Runnable {
             }
         }
         this.sceneObjects.add(new Sphere(new Vec3(0, 0, -2), 0.5, new Vec3(255, 100, 100), 0.5));
-        this.sceneObjects.add(new Sphere(new Vec3(-1, -0.5, -2), 0.5, new Vec3(100, 100, 255), 0.5));
+        this.sceneObjects.add(new Sphere(new Vec3(-1, 0, -2), 0.5, new Vec3(100, 100, 255), 0.5));
 //        this.sceneObjects.add(new Plane(new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(255, 255, 255), 0));
         this.sceneLights.add(new LightPoint(new Vec3(-2, 2, -2), new Vec3(255, 255, 255), 1));
     }
