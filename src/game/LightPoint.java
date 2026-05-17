@@ -5,9 +5,9 @@ public class LightPoint implements SceneLight {
     private Vec3 color;
     private double brightness;
 
-    public LightPoint(Vec3 pos, Vec3 rgb, double brightness) {
+    public LightPoint(Vec3 pos, Vec3 color, double brightness) {
         this.pos = pos;
-        this.color = rgb.divide(255);
+        this.color = color;
         this.brightness = brightness;
     }
 
@@ -20,9 +20,9 @@ public class LightPoint implements SceneLight {
     }
 
     public Vec3 normal(Vec3 pos) { // uses sphere logic
-        Vec3 normal = new Vec3(pos);
+        Vec3 normal = new Vec3(this.pos);
 
-        normal.subtract(this.pos);
+        normal.subtract(pos);
         /* Converts (x,y,z) into relative coordinates to the sphere origin
          * example: if origin is (0,0,0), if provided coords are (5,5,5),
          * we get: (5-0, 5-0, 5-0) = (5,5,5)

@@ -94,7 +94,10 @@ public class Ray {
 
         double I = Math.max(0, N.dot(L));
 
-        color.multiply(object.getColor()).multiply(I);
+        color.multiply(new Vec3(
+                object.getColor().x/255,
+                object.getColor().y/255,
+                object.getColor().z/255)).multiply(I);
 
     }
 

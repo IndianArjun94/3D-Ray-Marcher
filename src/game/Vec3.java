@@ -140,8 +140,8 @@ public class Vec3 {
         double dot = dot(normal);
 
         x = x - 2 * dot * normal.x;
-        y = y - 2 * dot * normal.x;
-        z = z- 2 * dot * normal.x;
+        y = y - 2 * dot * normal.y;
+        z = z - 2 * dot * normal.z;
 
         normalize();
 
