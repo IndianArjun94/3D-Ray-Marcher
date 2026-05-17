@@ -18,7 +18,9 @@ public class SceneManager implements Runnable {
                 this.rays[x + y * window.WIDTH] = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255));
             }
         }
-        this.sceneObjects.add(new Sphere(new Vec3(0, 0, -2), 0.5, new Vec3(255, 100, 100), 0));
+        this.sceneObjects.add(new Sphere(new Vec3(0, 0, -2), 0.5, new Vec3(255, 100, 100), 0.5));
+        this.sceneObjects.add(new Sphere(new Vec3(-1, -0.5, -2), 0.5, new Vec3(100, 100, 255), 0.5));
+//        this.sceneObjects.add(new Plane(new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(255, 255, 255), 0));
         this.sceneLights.add(new LightPoint(new Vec3(-2, 2, -2), new Vec3(255, 255, 255), 1));
     }
 
@@ -56,7 +58,10 @@ public class SceneManager implements Runnable {
             }
 
             if (hit) {
+                System.out.println("hit!");
                 window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), ray.getColor());
+            } else {
+                System.out.println(rayCounter);
             }
 
             rayCounter++;
