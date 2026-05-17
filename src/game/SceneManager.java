@@ -5,17 +5,16 @@ import java.util.ArrayList;
 public class SceneManager implements Runnable {
 
     public Window window;
-    public Ray[] rays;
+    public ArrayList<Ray> primaryRays = new ArrayList<>();
     public ArrayList<SceneObject> sceneObjects = new ArrayList<>();
     public ArrayList<SceneLight> sceneLights = new ArrayList<>();
     public Thread thread;
 
     public SceneManager(Window window) {
         this.window = window;
-        this.rays = new Ray[window.WIDTH * window.HEIGHT];
-        for (int x = 0; x < window.WIDTH; x++) {
-            for (int y = 0; y < window.HEIGHT; y++) {
-                this.rays[x + y * window.WIDTH] = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255));
+        for (int y = 0; y < window.HEIGHT; y++) {
+            for (int x = 0; x < window.WIDTH; x++) {
+                this.primaryRays.add(new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255)));
             }
         }
         this.sceneObjects.add(new Sphere(new Vec3(0, 0, -2), 0.5, new Vec3(255, 100, 100), 0.5));
@@ -32,24 +31,68 @@ public class SceneManager implements Runnable {
 
     public void run() {
         final float MIN_DIST = 0.001f;
+        final int MAX_STEPS = 2000;
 
         int rayCounter = 0;
-        for (Ray ray : rays) {
+        for (Ray ray : primaryRays) {
 
             boolean hit = false;
+            Vec3 finalColor = new Vec3(0,0,0);
 
-            for (int i = 0; i < 2000 && !hit; i++) { // max steps
+            for (int i = 0; i < MAX_STEPS && !hit; i++) { // max steps
 
                 ray.tick();
 
                 for (SceneObject object : sceneObjects) {
                     if (object.distance(ray.getPos()) < MIN_DIST) { // replace to loop through all scene objects
-//                        window.innerGameRenderer.setPixel((int) ray.px, (int) ray.py, new Vec3((int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255), (int) Math.abs((ray.pos.z + 1.9) * 255)));
                         ray.reflect(object);
                         hit = true;
 
-                        for (SceneLight light : sceneLights) {
-                            ray.updateLight(object, light);
+                        // shadow ray logic ------------------------------------
+
+                        ArrayList<Ray> goodShadowRays = new ArrayList<>(); // shadow rays that aren't blocked
+
+                        for (SceneLight light : sceneLights) { // create shadow rays
+                            Ray shadowRay = new Ray(ray);
+                            shadowRay.setColor(light.getColor());
+
+                            while (object.distance(shadowRay.getPos()) <= MIN_DIST) { // make sure the shadow ray is not already touching the object
+                                shadowRay.tick();
+                            }
+
+                            Vec3 newDir = new Vec3(light.normal(shadowRay.getPos()));
+                            shadowRay.setDir(newDir); // make the ray face the light
+
+                            boolean isShadowed = false;
+
+                            for (int j = i; j < MAX_STEPS; j++) {
+                                shadowRay.tick();
+
+                                for (SceneObject shadowObject : sceneObjects) {
+                                    if (shadowObject.distance(shadowRay.getPos()) <= MIN_DIST) {
+                                        isShadowed = true;
+                                        break;
+                                    }
+                                }
+
+                                if (isShadowed) {
+                                    break;
+                                }
+                            }
+
+                            if (!isShadowed) {
+                                shadowRay.setColor(
+                                        new Vec3(shadowRay.getColor()).multiply(
+                                                Shader.getBrightness(ray, object, light)
+                                        ));
+                                goodShadowRays.add(shadowRay);
+                            }
+                        }
+
+                        // light logic ------------------------------------
+
+                        if (!goodShadowRays.isEmpty()) {
+                            finalColor = Shader.calcColor(object, goodShadowRays);
                         }
 
                         break;
@@ -58,8 +101,9 @@ public class SceneManager implements Runnable {
             }
 
             if (hit) {
-                System.out.println("hit!");
-                window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), ray.getColor());
+                System.out.println("hit");
+
+                window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), finalColor);
             } else {
                 System.out.println(rayCounter);
             }

@@ -7,9 +7,18 @@ public class Ray {
 
     private Vec3 originalDir;
     private Vec3 dir;
-    private double stepSize = 0.01;
+    private final double stepSize = 0.01;
 
     private Vec3 color;
+
+    public Ray(Ray ray) {
+        pos = ray.getPos();
+        px = ray.getPx();
+        py = ray.getPy();
+        originalDir = ray.getOriginalDir();
+        dir = ray.getDir();
+        color = ray.getColor();
+    }
 
     public Ray(int px, int py, double W, double H, double FOV, Vec3 color) {
         this.px = px;
@@ -88,19 +97,6 @@ public class Ray {
         dir.reflect(object.normal(pos));
     }
 
-    public void updateLight(SceneObject object, SceneLight light) {
-        Vec3 N = object.normal(pos);
-        Vec3 L = light.normal(pos);
-
-        double I = Math.max(0, N.dot(L));
-
-        color.multiply(new Vec3(
-                object.getColor().x/255,
-                object.getColor().y/255,
-                object.getColor().z/255)).multiply(I);
-
-    }
-
     // getters and setters
 
     public Vec3 getPos() {
@@ -133,5 +129,21 @@ public class Ray {
 
     public void setColor(Vec3 color) {
         this.color = color;
+    }
+
+    public Vec3 getOriginalDir() {
+        return originalDir;
+    }
+
+    public void setOriginalDir(Vec3 originalDir) {
+        this.originalDir = originalDir;
+    }
+
+    public Vec3 getDir() {
+        return dir;
+    }
+
+    public void setDir(Vec3 dir) {
+        this.dir = dir;
     }
 }
