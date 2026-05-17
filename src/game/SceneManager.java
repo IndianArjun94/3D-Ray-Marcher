@@ -19,7 +19,7 @@ public class SceneManager implements Runnable {
         }
         this.sceneObjects.add(new Sphere(new Vec3(0.5, -0.5, -3), 1.3, new Vec3(255, 100, 100), 0.5));
         this.sceneObjects.add(new Sphere(new Vec3(-0.5, 0.5, -1.5), 0.5, new Vec3(100, 100, 255), 0.5));
-//        this.sceneObjects.add(new Plane(new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(255, 255, 255), 0));
+        this.sceneObjects.add(new Plane(new Vec3(0, -1.5, 0), new Vec3(0, 1, 0), new Vec3(255, 255, 255), 0));
         this.sceneLights.add(new LightPoint(new Vec3(-1, 1, 0), new Vec3(255, 125, 255), 1));
     }
 
@@ -57,7 +57,7 @@ public class SceneManager implements Runnable {
                             Ray shadowRay = new Ray(ray);
                             shadowRay.setColor(light.getColor());
 
-                            Vec3 normal = object.normal(shadowRay.getPos());
+                            Vec3 normal = object.normal(shadowRay.getPos(), shadowRay.getDir());
 
                             shadowRay.getPos().add(normal.multiply(EPSILON));
 

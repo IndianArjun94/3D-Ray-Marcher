@@ -2,7 +2,7 @@ package game;
 
 public interface SceneObject {
     double distance(Vec3 pos);
-    Vec3 normal(Vec3 pos);
+    Vec3 normal(Vec3 pos, Vec3 dir);
 
     // getters and setters
     Vec3 getColor();

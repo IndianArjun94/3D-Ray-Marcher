@@ -15,16 +15,18 @@ public class Plane implements SceneObject {
 
     @Override
     public double distance(Vec3 pos) {
-        Vec3 dist = pos.subtract(point);
+        Vec3 dist = new Vec3(pos).subtract(point);
         return dist.dot(normal);
     }
 
     @Override
-    public Vec3 normal(Vec3 pos) {
-        if (normal.dot(pos) > 0) {
-            return normal.multiply(-1);
-        } else {
+    public Vec3 normal(Vec3 pos, Vec3 dir) {
+        if (normal.dot(dir) > 0) {
+            return new Vec3(normal).multiply(-1);
+        } else if (normal.dot(dir) < 0) {
             return normal;
+        } else {
+            return null;
         }
     }
 

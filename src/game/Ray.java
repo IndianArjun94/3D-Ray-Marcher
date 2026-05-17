@@ -94,7 +94,7 @@ public class Ray {
          * imagine a ray bouncing off your desk at an angle, the dx or dz won't change, just the dy, because your desk's normal only has a ny.
          */
 
-        dir.reflect(object.normal(pos));
+        dir.reflect(object.normal(pos, dir));
     }
 
     // getters and setters

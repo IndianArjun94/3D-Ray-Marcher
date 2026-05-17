@@ -21,7 +21,7 @@ public class Sphere implements SceneObject {
         return distance.length() - r;
     }
 
-    public Vec3 normal(Vec3 pos) {
+    public Vec3 normal(Vec3 pos, Vec3 dir) {
         Vec3 normal = new Vec3(pos);
 
         normal.subtract(this.pos);
