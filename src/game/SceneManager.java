@@ -1,6 +1,10 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import static game.Shader.MAX_STEPS;
+import static game.Shader.MIN_DIST;
 
 public class SceneManager implements Runnable {
 
@@ -31,9 +35,7 @@ public class SceneManager implements Runnable {
     }
 
     public void run() {
-        final double MIN_DIST = 0.001f;
-        final int MAX_STEPS = 4000;
-        final double EPSILON = 0.1f;
+
 
         int rayCounter = 0;
         for (Ray ray : primaryRays) {
@@ -52,70 +54,16 @@ public class SceneManager implements Runnable {
 
                         // shadow ray logic ------------------------------------
 
-                        ArrayList<Ray> goodShadowRays = new ArrayList<>(); // shadow rays that aren't blocked
-
-                        for (SceneLight light : sceneLights) { // create shadow rays
-                            Ray shadowRay = new Ray(ray);
-                            shadowRay.setColor(light.getColor());
-
-                            Vec3 normal = object.normal(shadowRay.getPos(), shadowRay.getDir());
-
-                            shadowRay.getPos().add(normal.multiply(EPSILON));
-
-                            Vec3 newDir = new Vec3(light.normal(shadowRay.getPos()));
-                            shadowRay.setDir(newDir); // make the ray face the light
-
-                            boolean isShadowed = false;
-
-                            Vec3 startPos = new Vec3(shadowRay.getPos());
-                            double distanceToLight = light.distance(shadowRay.getPos());
-
-                            for (int j = 0; j < MAX_STEPS; j++) {
-                                shadowRay.tick();
-
-                                Vec3 travel = new Vec3(shadowRay.getPos());
-                                travel.subtract(startPos);
-
-                                if (travel.length() >= distanceToLight) {
-                                    break;
-                                }
-
-                                for (SceneObject shadowObject : sceneObjects) {
-                                    if (shadowObject.distance(shadowRay.getPos()) <= MIN_DIST) {
-                                        isShadowed = true;
-                                        break;
-                                    }
-                                }
-
-                                if (isShadowed) {
-                                    break;
-                                }
-                            }
-
-                            if (!isShadowed) {
-                                shadowRay.setColor(
-                                        new Vec3(shadowRay.getColor()).multiply(
-                                                Shader.getBrightness(ray, object, light)
-                                        ));
-
-                                goodShadowRays.add(shadowRay);
-                            }
-                        }
+//                        List<Ray> goodShadowRays = Shader.runShadowRays(ray, object, sceneObjects, sceneLights, EPSILON, MIN_DIST, MAX_STEPS);
 
                         // light logic ------------------------------------
 
-                        Vec3 ambient = new Vec3(object.getColor()).multiply(0.2);
-
-                        finalColor = new Vec3(ambient);
-
-                        if (!goodShadowRays.isEmpty()) {
-                            Vec3 diffuseColor = Shader.calcLocalColor(object, goodShadowRays);
-                            finalColor.add(diffuseColor);
-
-                            finalColor.x = Math.min(255, finalColor.x);
-                            finalColor.y = Math.min(255, finalColor.y);
-                            finalColor.z = Math.min(255, finalColor.z);
-                        }
+                        finalColor = Shader.localColor(
+                                ray,
+                                object,
+                                sceneObjects,
+                                sceneLights
+                        );
 
                         break;
                     }
