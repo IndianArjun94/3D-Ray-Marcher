@@ -4,13 +4,13 @@ public class Plane implements SceneObject {
     private Vec3 point;
     private Vec3 normal;
     private Vec3 color;
-    double roughness;
+    double reflectivity;
 
-    public Plane(Vec3 point, Vec3 normal, Vec3 color, double roughness) {
+    public Plane(Vec3 point, Vec3 normal, Vec3 color, double reflectivity) {
         this.point = point;
         this.normal = normal;
         this.color = color;
-        this.roughness = roughness;
+        this.reflectivity = reflectivity;
     }
 
     @Override
@@ -42,12 +42,12 @@ public class Plane implements SceneObject {
     }
 
     @Override
-    public double getRoughness() {
-        return roughness;
+    public double getReflectivity() {
+        return reflectivity;
     }
 
     @Override
-    public void setRoughness(double roughness) {
-        this.roughness = roughness;
+    public void setReflectivity(double reflectivity) {
+        this.reflectivity = reflectivity;
     }
 }

@@ -8,6 +8,6 @@ public interface SceneObject {
     Vec3 getColor();
     void setColor(Vec3 rgb);
 
-    double getRoughness();
-    void setRoughness(double roughness);
+    double getReflectivity();
+    void setReflectivity(double reflectivity);
 }

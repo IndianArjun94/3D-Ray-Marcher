@@ -4,13 +4,13 @@ public class Sphere implements SceneObject {
     private Vec3 pos;
     private double r;
     private Vec3 color;
-    private double roughness;
+    private double reflectivity;
 
-    public Sphere(Vec3 pos, double r, Vec3 rgb, double roughness) {
+    public Sphere(Vec3 pos, double r, Vec3 rgb, double reflectivity) {
         this.pos = pos;
         this.r = r;
         this.color = rgb;
-        this.roughness = roughness;
+        this.reflectivity = reflectivity;
     }
 
     public double distance(Vec3 pos) {
@@ -43,12 +43,12 @@ public class Sphere implements SceneObject {
 
     // getters and setters
 
-    public double getRoughness() {
-        return roughness;
+    public double getReflectivity() {
+        return reflectivity;
     }
 
-    public void setRoughness(double roughness) {
-        this.roughness = roughness;
+    public void setReflectivity(double reflectivity) {
+        this.reflectivity = reflectivity;
     }
 
     public Vec3 getColor() {

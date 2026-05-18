@@ -21,6 +21,7 @@ public class Window {
         WIDTH = (int) dimension2D.getWidth();
         HEIGHT = (int) dimension2D.getHeight();
         initJFrame();
+        frame.setName("Grant Johnsrud");
     }
 
     private void initJFrame() {
