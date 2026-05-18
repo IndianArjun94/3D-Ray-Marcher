@@ -7,7 +7,7 @@ public class Shader {
 
     public static final double MIN_DIST = 0.001f;
     public static final int MAX_STEPS = 4000;
-    public static final double EPSILON = 0.1f;
+    public static final double EPSILON = 0.01f;
 
 
     private static double getBrightness(Ray primaryRay, SceneObject object, SceneLight light) {
