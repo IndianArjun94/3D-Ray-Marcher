@@ -7,6 +7,8 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
+import static game.Shader.rayCounter;
+
 public class Window {
     public JFrame frame;
     public final int WIDTH;

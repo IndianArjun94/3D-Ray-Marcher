@@ -44,7 +44,7 @@ public class LightPoint implements SceneLight {
     }
 
     public void setColor(Vec3 rgb) {
-        this.color = color;
+        this.color = rgb;
     }
 
     public double getBrightness() {

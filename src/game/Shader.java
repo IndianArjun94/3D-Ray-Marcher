@@ -8,6 +8,7 @@ public class Shader {
     public static final double MIN_DIST = 0.001f;
     public static final int MAX_STEPS = 4000;
     public static final double EPSILON = 0.01f;
+    public static int rayCounter = 0;
 
 
     private static double getBrightness(Ray primaryRay, SceneObject object, SceneLight light) {
@@ -60,6 +61,7 @@ public class Shader {
 
         for (SceneLight light : sceneLights) { // create shadow rays
             Ray shadowRay = new Ray(ray);
+            rayCounter++;
             shadowRay.setColor(light.getColor());
 
             Vec3 normal = object.normal(shadowRay.getPos(), shadowRay.getDir());

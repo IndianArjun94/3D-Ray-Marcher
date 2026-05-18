@@ -1,10 +1,8 @@
 package game;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import static game.Shader.MAX_STEPS;
-import static game.Shader.MIN_DIST;
+import static game.Shader.*;
 
 public class SceneManager implements Runnable {
 
@@ -83,8 +81,8 @@ public class SceneManager implements Runnable {
     public void run() {
 
 
-        int rayCounter = 0;
         for (Ray ray : primaryRays) {
+            rayCounter++;
 
             boolean hit = false;
             Vec3 finalColor = new Vec3(0,0,0);
@@ -123,8 +121,8 @@ public class SceneManager implements Runnable {
             if (ray.getPx() == 0) {
                 window.innerGameRenderer.setPixel(0, (int) ray.getPy(), new Vec3(255, 255, 255));
             }
-
-            rayCounter++;
         }
+
+        System.out.println(rayCounter);
     }
 }
