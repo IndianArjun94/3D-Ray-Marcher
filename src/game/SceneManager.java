@@ -22,12 +22,12 @@ public class SceneManager implements Runnable {
         // --- CLEAR THE OLD OBJECTS AND LIGHTS, THEN ADD THESE ---
 
 // 1. The Environment (Floor and Back Wall)
-        this.sceneObjects.add(new Plane(new Vec3(0, -2.5, 0), new Vec3(0, 1, 0), new Vec3(200, 200, 200), 0.2));  // Light Gray Floor
-        this.sceneObjects.add(new Plane(new Vec3(0, 0, -5.5), new Vec3(0, 0, 1), new Vec3(150, 150, 150), 0.5));  // Matte Back Wall
+        this.sceneObjects.add(new Plane(new Vec3(0, -2.5, 0), new Vec3(0, 1, 0), new Vec3(200, 200, 200), 0));  // Light Gray Floor
+        this.sceneObjects.add(new Plane(new Vec3(0, 0, -5.5), new Vec3(0, 0, 1), new Vec3(150, 150, 150), 0));  // Matte Back Wall
 
 // 2. The Foreground Elements (Staggered Spheres)
-        this.sceneObjects.add(new Sphere(new Vec3(-1.2, -0.5, -4.0), 1.0, new Vec3(255, 60, 60), 0.1));   // Large, Shiny Crimson Sphere (Left/Deep)
-        this.sceneObjects.add(new Sphere(new Vec3(1.1, -0.8, -3.2), 0.7, new Vec3(50, 180, 255), 0.4));  // Medium, Semi-Gloss Cyan Sphere (Right/Close)
+        this.sceneObjects.add(new Sphere(new Vec3(-1.2, -0.5, -4.0), 1.0, new Vec3(255, 60, 60), 0.0));   // Large, Shiny Crimson Sphere (Left/Deep)
+        this.sceneObjects.add(new Sphere(new Vec3(1.1, -0.8, -3.2), 0.7, new Vec3(50, 180, 255), 0.0));  // Medium, Semi-Gloss Cyan Sphere (Right/Close)
         this.sceneObjects.add(new Sphere(new Vec3(0.0, 0.8, -2.8), 0.45, new Vec3(255, 215, 0), 0.0));   // Small, Pure Mirror Gold Sphere (Center/High)
 
 // 3. The Dual Light Rig (Cross-Lighting Setup)
@@ -106,10 +106,13 @@ public class SceneManager implements Runnable {
                         // reflection ray logic ------------------------------------
 
                         Ray reflectionRay = new Ray(ray);
-                        reflectionRay.reflect(object);
+                        reflectionRay.setColor(firstLocalColor);
 
                         Vec3 normal = object.normal(reflectionRay.getPos(), reflectionRay.getDir());
                         reflectionRay.getPos().add(normal.multiply(EPSILON));
+
+                        reflectionRay.reflect(object);
+
 
                         for (int j = 0; j < 4; j++) {
 
@@ -120,9 +123,18 @@ public class SceneManager implements Runnable {
 
                                 for (SceneObject reflectionObject : sceneObjects) {
                                     if (reflectionObject.distance(reflectionRay.getPos()) < MIN_DIST) {
-                                        Vec3 newRayColor = new Vec3(firstLocalColor);
+                                        Vec3 newRayColor = new Vec3(
+                                                Shader.localColor(
+                                                    reflectionRay,
+                                                    reflectionObject,
+                                                    sceneObjects,
+                                                    sceneLights
+                                        ));
+
                                         newRayColor.multiply(1-reflectionObject.getReflectivity());
+//                                        System.out.print(newRayColor.x + " | ");
                                         newRayColor.add(new Vec3(reflectionRay.getColor()).multiply(reflectionObject.getReflectivity()));
+//                                        System.out.println(newRayColor.x);
 
                                         reflectionRay.setColor(newRayColor);
 
@@ -142,9 +154,9 @@ public class SceneManager implements Runnable {
                             }
 
                             if (!reflected) {
-                                if (j == 0) {
-                                    reflectionRay.setColor(firstLocalColor);
-                                }
+//                                if (j == 0) {
+//                                    reflectionRay.setColor(firstLocalColor);
+//                                }
                                 break;
                             }
                         }
