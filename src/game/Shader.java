@@ -56,6 +56,74 @@ public class Shader {
 
     }
 
+
+
+    public static Vec3 runReflectionAndShadowRays(Ray ray, SceneObject object, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
+        Vec3 finalColor;
+
+        Ray reflectionRay = new Ray(ray);
+        reflectionRay.setColor(localColor(ray, object, sceneObjects, sceneLights));
+
+        Vec3 normal = object.normal(reflectionRay.getPos(), reflectionRay.getDir());
+        reflectionRay.getPos().add(normal.multiply(EPSILON));
+
+        reflectionRay.reflect(object);
+
+        double currentReflectivity = object.getReflectivity();
+
+
+        for (int j = 0; j < 4; j++) {
+
+            boolean reflected = false;
+
+            for (int k = 0; k < MAX_STEPS; k++) {
+                reflectionRay.tick();
+
+                for (SceneObject reflectionObject : sceneObjects) {
+                    if (reflectionObject.distance(reflectionRay.getPos()) < MIN_DIST) {
+                        Vec3 newRayColor = new Vec3(
+                                Shader.localColor(
+                                        reflectionRay,
+                                        reflectionObject,
+                                        sceneObjects,
+                                        sceneLights
+                                ));
+
+                        newRayColor.multiply(currentReflectivity); // [REFLECTION] base color of HIT object (HIGHER the reflectivity, MORE of this)
+//                                        System.out.print(newRayColor.x + " | ");
+                        newRayColor.add(new Vec3(reflectionRay.getColor()).multiply(1-currentReflectivity)); // [BASE COLOR] base color of CURRENT object (HIGHER the reflectivity, LESS of this)
+//                                        System.out.println(newRayColor.x);
+
+                        reflectionRay.setColor(newRayColor);
+
+                        currentReflectivity *= reflectionObject.getReflectivity();
+
+                        Vec3 reflectionNormal = reflectionObject.normal(reflectionRay.getPos(), reflectionRay.getDir());
+                        reflectionRay.getPos().add(reflectionNormal.multiply(EPSILON));
+
+                        reflectionRay.reflect(reflectionObject);
+
+
+                        reflected = true;
+                        break;
+                    }
+                }
+
+                if (reflected) {
+                    break;
+                }
+            }
+
+            if (!reflected) {
+                break;
+            }
+        }
+
+        finalColor = reflectionRay.getColor();
+
+        return finalColor;
+    }
+
     public static List<Ray> runShadowRays(Ray ray, SceneObject object, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
         ArrayList<Ray> goodShadowRays = new ArrayList<>();
 

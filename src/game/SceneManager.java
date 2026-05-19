@@ -86,7 +86,7 @@ public class SceneManager implements Runnable {
             rayCounter++;
 
             boolean hit = false;
-            Vec3 finalColor = new Vec3(0,0,0);
+            Vec3 finalColor = null;
 
             for (int i = 0; i < MAX_STEPS && !hit; i++) { // max steps
 
@@ -96,77 +96,11 @@ public class SceneManager implements Runnable {
                     if (object.distance(ray.getPos()) < MIN_DIST) { // replace to loop through all scene objects
                         hit = true;
 
-                        Vec3 firstLocalColor = Shader.localColor(
+                        finalColor = runReflectionAndShadowRays(
                                 ray,
                                 object,
                                 sceneObjects,
-                                sceneLights
-                        );
-
-                        // reflection ray logic ------------------------------------
-
-                        Ray reflectionRay = new Ray(ray);
-                        reflectionRay.setColor(firstLocalColor);
-
-                        Vec3 normal = object.normal(reflectionRay.getPos(), reflectionRay.getDir());
-                        reflectionRay.getPos().add(normal.multiply(EPSILON));
-
-                        reflectionRay.reflect(object);
-
-                        double currentReflectivity = object.getReflectivity();
-
-
-                        for (int j = 0; j < 4; j++) {
-
-                            boolean reflected = false;
-
-                            for (int k = 0; k < MAX_STEPS; k++) {
-                                reflectionRay.tick();
-
-                                for (SceneObject reflectionObject : sceneObjects) {
-                                    if (reflectionObject.distance(reflectionRay.getPos()) < MIN_DIST) {
-                                        Vec3 newRayColor = new Vec3(
-                                                Shader.localColor(
-                                                    reflectionRay,
-                                                    reflectionObject,
-                                                    sceneObjects,
-                                                    sceneLights
-                                        ));
-
-                                        newRayColor.multiply(currentReflectivity); // [REFLECTION] base color of HIT object (HIGHER the reflectivity, MORE of this)
-//                                        System.out.print(newRayColor.x + " | ");
-                                        newRayColor.add(new Vec3(reflectionRay.getColor()).multiply(1-currentReflectivity)); // [BASE COLOR] base color of CURRENT object (HIGHER the reflectivity, LESS of this)
-//                                        System.out.println(newRayColor.x);
-
-                                        reflectionRay.setColor(newRayColor);
-
-                                        currentReflectivity *= reflectionObject.getReflectivity();
-
-                                        Vec3 reflectionNormal = reflectionObject.normal(reflectionRay.getPos(), reflectionRay.getDir());
-                                        reflectionRay.getPos().add(reflectionNormal.multiply(EPSILON));
-
-                                        reflectionRay.reflect(reflectionObject);
-
-
-                                        reflected = true;
-                                        break;
-                                    }
-                                }
-
-                                if (reflected) {
-                                    break;
-                                }
-                            }
-
-                            if (!reflected) {
-//                                if (j == 0) {
-//                                    reflectionRay.setColor(firstLocalColor);
-//                                }
-                                break;
-                            }
-                        }
-
-                        finalColor = reflectionRay.getColor();
+                                sceneLights);
 
                         break;
                     }

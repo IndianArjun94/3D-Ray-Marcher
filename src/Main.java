@@ -5,7 +5,7 @@ import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
-        Window window = new Window(new Dimension(2650,1440));
+        Window window = new Window(new Dimension(400,200));
         window.initRenderSystem();
         SceneManager sceneManager = new SceneManager(window);
         sceneManager.start();
