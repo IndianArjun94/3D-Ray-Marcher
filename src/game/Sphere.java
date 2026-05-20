@@ -21,6 +21,48 @@ public class Sphere implements SceneObject {
         return distance.length() - r;
     }
 
+    public Vec3 calculateRayTravelTo(Vec3 rayOrigin, Vec3 rayDir) {
+        // O = ray origin
+        // D = ray direction
+        // t = travel
+
+        // Ray position (P) = O + tD
+
+        // C = sphere center
+        // r = sphere radius
+
+        // Ray distance from Sphere Center |P - C|^2 = r^2 (radius)
+        // this is just the distance formula, since P and C are both Vec3s
+
+        // Ray distance to ray |(O + tD) - C|^2 = r^2 (radius)
+        // We substitute "P" for the ray position formula
+
+        // (O + tD - C)^2 = r^2
+        // we must get a, b, and c from this to use the quadratic formula
+        // if the ray misses, that means that (O + tD - C)^2 must be greater than r^2, and the ray misses
+        // this would be represented by if (b^2 - 4ac) is negative.
+        // if (b^2 - 4ac) is = 0, then the ray skims the circle at one point, and if its > 0, then the ray could pass through the sphere, in one end and out the other.
+
+
+        // Formula:|tD + L - C|^2 = r^2
+        // t = ray travel
+        // D = ray direction
+
+        // L = O - C
+
+
+        // |tD + L|^2 = r^2
+        // = (tD + L)(tD + L) = r^2
+
+        // tD^2 + 2tDL + L^2 = r^2
+        // (tD * tD) + 2(tDL) + (L * L) = r^2
+
+        // t^2(D * D) + 2t(D * L) + (L * L) - r^2 = 0
+
+        return null;
+
+    }
+
     public Vec3 normal(Vec3 pos, Vec3 dir) {
         Vec3 normal = new Vec3(pos);
 
