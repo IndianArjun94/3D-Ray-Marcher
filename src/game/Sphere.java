@@ -39,25 +39,20 @@ public class Sphere implements SceneObject {
 
         // (O + tD - C)^2 = r^2
         // we must get a, b, and c from this to use the quadratic formula
-        // if the ray misses, that means that (O + tD - C)^2 must be greater than r^2, and the ray misses
+        // BUT FIRST, simplify (O + tD - C)^2 into (oc + tD)^2 -> oc is a new var: O-C
+
+        // oc = O - C (ray origin - sphere center)
+
+        // NEW FORMULA:
+        // (tD + oc)^2 = r^2
+        // (tD + oc)(tD + oc) = r^2
+        // (tD*tD) + 2(tD * oc) + oc^2
+        // t^2(D*D) + 2t(D * oc) + (oc*oc) - r^2 = 0
+
+
+        // if the ray misses, that means that (tD + oc)^2 must be greater than r^2, and the ray misses
         // this would be represented by if (b^2 - 4ac) is negative.
         // if (b^2 - 4ac) is = 0, then the ray skims the circle at one point, and if its > 0, then the ray could pass through the sphere, in one end and out the other.
-
-
-        // Formula:|tD + L - C|^2 = r^2
-        // t = ray travel
-        // D = ray direction
-
-        // L = O - C
-
-
-        // |tD + L|^2 = r^2
-        // = (tD + L)(tD + L) = r^2
-
-        // tD^2 + 2tDL + L^2 = r^2
-        // (tD * tD) + 2(tDL) + (L * L) = r^2
-
-        // t^2(D * D) + 2t(D * L) + (L * L) - r^2 = 0
 
         return null;
 
