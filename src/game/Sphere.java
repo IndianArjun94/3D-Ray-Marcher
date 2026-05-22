@@ -21,7 +21,7 @@ public class Sphere implements SceneObject {
         return distance.length() - r;
     }
 
-    public Vec3 calculateRayTravelTo(Vec3 rayOrigin, Vec3 rayDir) {
+    public double calculateRayTravel(Vec3 rayOrigin, Vec3 rayDir) {
         // O = ray origin
         // D = ray direction
         // t = travel
@@ -74,13 +74,13 @@ public class Sphere implements SceneObject {
         double discriminant = (b*b - 4*a*c);
 
         if (discriminant < 0) {
-            return null;
+            return -1;
         }
 
         double[] solutions = new double[2];
 
-        solutions[0] = (-b + Math.sqrt(discriminant))/(2*a);
-        solutions[1] = (-b - Math.sqrt(discriminant))/(2*a);
+        solutions[0] = (-b - Math.sqrt(discriminant))/(2*a);
+        solutions[1] = (-b + Math.sqrt(discriminant))/(2*a);
 
         double t = -1;
 
@@ -91,8 +91,28 @@ public class Sphere implements SceneObject {
         }
 
         if (t < 0) {
-            return null; // ray misses the sphere entirely
+            return -1; // ray misses the sphere entirely
         }
+
+        return t;
+
+//        Vec3 finalHitPoint = new Vec3(D);
+//        finalHitPoint.multiply(t);
+//        finalHitPoint.add(O);
+//
+//        return finalHitPoint;
+
+    }
+
+    public Vec3 calculateRayTravelPos(Vec3 rayOrigin, Vec3 rayDir) {
+        double t = calculateRayTravel(rayOrigin, rayDir);
+
+        if (t == -1) {
+            return null;
+        }
+
+        Vec3 D = rayDir;
+        Vec3 O = rayOrigin;
 
         Vec3 finalHitPoint = new Vec3(D);
         finalHitPoint.multiply(t);

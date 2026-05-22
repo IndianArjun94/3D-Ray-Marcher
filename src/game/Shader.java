@@ -24,7 +24,7 @@ public class Shader {
         Vec3 ambient = new Vec3(object.getColor()).multiply(0.1);
 
         Vec3 finalColor = new Vec3(object.getColor());
-        Vec3 totalLight = new Vec3(0,0,0);
+        Vec3 totalLight = new Vec3(0, 0, 0);
 
 
         for (int i = 0; i < shadowRays.size(); i++) {
@@ -57,12 +57,10 @@ public class Shader {
     }
 
 
-
     public static Vec3 runReflectionAndShadowRays(Ray ray, SceneObject object, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
         Vec3 finalColor;
 
         Ray reflectionRay = new Ray(ray);
-        reflectionRay.setColor(localColor(ray, object, sceneObjects, sceneLights));
 
         Vec3 normal = object.normal(reflectionRay.getPos(), reflectionRay.getDir());
         reflectionRay.getPos().add(normal.multiply(EPSILON));
@@ -71,47 +69,51 @@ public class Shader {
 
         double currentReflectivity = object.getReflectivity();
 
+        reflectionRay.setColor(localColor(ray, object, sceneObjects, sceneLights).multiply(1-currentReflectivity));
+
 
         for (int j = 0; j < 10; j++) {
 
             boolean reflected = false;
 
-            for (int k = 0; k < MAX_STEPS; k++) {
-                reflectionRay.tick();
+            double lowest_t = Double.MAX_VALUE;
+            SceneObject associatedReflectionObject = null;
 
-                for (SceneObject reflectionObject : sceneObjects) {
-                    if (reflectionObject.distance(reflectionRay.getPos()) < MIN_DIST) {
-                        Vec3 newRayColor = new Vec3(
-                                Shader.localColor(
-                                        reflectionRay,
-                                        reflectionObject,
-                                        sceneObjects,
-                                        sceneLights
-                                ));
+            for (SceneObject reflectionObject : sceneObjects) {
+                double t = reflectionObject.calculateRayTravel(reflectionRay.getPos(), reflectionRay.getDir());
 
-                        newRayColor.multiply(currentReflectivity); // [REFLECTION] base color of HIT object (HIGHER the reflectivity, MORE of this)
+                if (t > 0 && t < lowest_t) {
+                    lowest_t = t;
+                    associatedReflectionObject = reflectionObject;
+                    reflected = true;
+                }
+
+            }
+
+            if (reflected) {
+                reflectionRay.setPos(associatedReflectionObject.calculateRayTravelPos(reflectionRay.getPos(), reflectionRay.getDir()));
+
+                Vec3 newRayColor = new Vec3(
+                        Shader.localColor(
+                                reflectionRay,
+                                associatedReflectionObject,
+                                sceneObjects,
+                                sceneLights
+                        ));
+
+                newRayColor.multiply(currentReflectivity * (1-associatedReflectionObject.getReflectivity())); // [REFLECTION] color of HIT object (HIGHER the reflectivity, MORE of this)
 //                                        System.out.print(newRayColor.x + " | ");
-                        newRayColor.add(new Vec3(reflectionRay.getColor()).multiply(1-currentReflectivity)); // [BASE COLOR] base color of CURRENT object (HIGHER the reflectivity, LESS of this)
+                newRayColor.add(reflectionRay.getColor()); // [BASE COLOR] base color of CURRENT object (HIGHER the reflectivity, LESS of this)
 //                                        System.out.println(newRayColor.x);
 
-                        reflectionRay.setColor(newRayColor);
+                reflectionRay.setColor(newRayColor);
 
-                        currentReflectivity *= reflectionObject.getReflectivity();
+                currentReflectivity *= associatedReflectionObject.getReflectivity();
 
-                        Vec3 reflectionNormal = reflectionObject.normal(reflectionRay.getPos(), reflectionRay.getDir());
-                        reflectionRay.getPos().add(reflectionNormal.multiply(EPSILON));
+                Vec3 reflectionNormal = associatedReflectionObject.normal(reflectionRay.getPos(), reflectionRay.getDir());
+                reflectionRay.getPos().add(reflectionNormal.multiply(EPSILON));
 
-                        reflectionRay.reflect(reflectionObject);
-
-
-                        reflected = true;
-                        break;
-                    }
-                }
-
-                if (reflected) {
-                    break;
-                }
+                reflectionRay.reflect(associatedReflectionObject);
             }
 
             if (!reflected) {
@@ -141,32 +143,19 @@ public class Shader {
 
             boolean isShadowed = false;
 
-            Vec3 startPos = new Vec3(shadowRay.getPos());
             double distanceToLight = light.distance(shadowRay.getPos());
 
-            for (int j = 0; j < MAX_STEPS; j++) {
-                shadowRay.tick();
-
-                Vec3 travel = new Vec3(shadowRay.getPos());
-                travel.subtract(startPos);
-
-                if (travel.length() >= distanceToLight) {
-                    break;
-                }
-
-                for (SceneObject shadowObject : sceneObjects) {
-                    if (shadowObject.distance(shadowRay.getPos()) <= MIN_DIST) {
-                        isShadowed = true;
-                        break;
-                    }
-                }
-
-                if (isShadowed) {
+            for (SceneObject shadowObject : sceneObjects) {
+                double t = shadowObject.calculateRayTravel(shadowRay.getPos(), shadowRay.getDir());
+                if (t > 0 && t < distanceToLight) {
+                    isShadowed = true;
                     break;
                 }
             }
 
             if (!isShadowed) {
+                shadowRay.setPos(light.calculateRayTravelPos(shadowRay.getPos(), shadowRay.getDir()));
+
                 shadowRay.setColor(
                         new Vec3(shadowRay.getColor()).multiply(
                                 Shader.getBrightness(ray, object, light)

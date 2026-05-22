@@ -35,16 +35,16 @@ public class SceneManager implements Runnable {
 //        this.sceneLights.add(new LightPoint(new Vec3(-3.0, 3.0, -1.0), new Vec3(255, 255, 255), 1.0)); // Main Key Light (Top Left, Front)
 //        this.sceneLights.add(new LightPoint(new Vec3(3.0, 1.0, -4.5), new Vec3(255, 255, 255), 0.8));  // Rim/Fill Light (Right, Deep)
 ////         --- 1. THE FIVE-SIDED ENCLOSURE (Walls, Floor, Ceiling) ---
-// Floor (Light Gray)
-        this.sceneObjects.add(new Plane(new Vec3(0, -3.0, 0), new Vec3(0, 1, 0), new Vec3(220, 220, 220), 0.1));
-// Back Wall (Medium Gray)
-        this.sceneObjects.add(new Plane(new Vec3(0, 0, -7.0), new Vec3(0, 0, 1), new Vec3(160, 160, 160), 0.2));
-// Left Wall (Distinct Matte Crimson Red - showcases colored bounces later)
-        this.sceneObjects.add(new Plane(new Vec3(-4.5, 0, 0), new Vec3(1, 0, 0), new Vec3(255, 65, 65), 0.3));
-// Right Wall (Distinct Matte Forest Green)
-        this.sceneObjects.add(new Plane(new Vec3(4.5, 0, 0), new Vec3(-1, 0, 0), new Vec3(65, 255, 65), 0.2));
-// Ceiling (Dark Gray)
-        this.sceneObjects.add(new Plane(new Vec3(0, 4.0, 0), new Vec3(0, -1, 0), new Vec3(100, 100, 100), 0.1));
+//// Floor (Light Gray)
+//        this.sceneObjects.add(new Plane(new Vec3(0, -3.0, 0), new Vec3(0, 1, 0), new Vec3(220, 220, 220), 0.1));
+//// Back Wall (Medium Gray)
+//        this.sceneObjects.add(new Plane(new Vec3(0, 0, -7.0), new Vec3(0, 0, 1), new Vec3(160, 160, 160), 0.2));
+//// Left Wall (Distinct Matte Crimson Red - showcases colored bounces later)
+//        this.sceneObjects.add(new Plane(new Vec3(-4.5, 0, 0), new Vec3(1, 0, 0), new Vec3(255, 65, 65), 0.3));
+//// Right Wall (Distinct Matte Forest Green)
+//        this.sceneObjects.add(new Plane(new Vec3(4.5, 0, 0), new Vec3(-1, 0, 0), new Vec3(65, 255, 65), 0.2));
+//// Ceiling (Dark Gray)
+//        this.sceneObjects.add(new Plane(new Vec3(0, 4.0, 0), new Vec3(0, -1, 0), new Vec3(100, 100, 100), 0.1));
 
 // --- 2. THE SEVEN-SPHERE GEOMETRIC VARIETY ---
 // Central Anchor: Large Perfect Mirror Sphere
@@ -90,33 +90,35 @@ public class SceneManager implements Runnable {
             rayCounter++;
 
             boolean hit = false;
-            Vec3 finalColor = null;
+            Vec3 finalColor;
 
-            for (int i = 0; i < MAX_STEPS && !hit; i++) { // max steps
+            double lowest_t = Double.MAX_VALUE;
+            SceneObject associatedObject = null;
 
-                ray.tick();
+            for (SceneObject object : sceneObjects) {
 
-                for (SceneObject object : sceneObjects) {
-                    if (object.distance(ray.getPos()) < MIN_DIST) { // replace to loop through all scene objects
-                        hit = true;
+                double t = object.calculateRayTravel(ray.getPos(), ray.getDir());
 
-                        finalColor = runReflectionAndShadowRays(
-                                ray,
-                                object,
-                                sceneObjects,
-                                sceneLights);
-
-                        break;
-                    }
+                if (t > 0 && t < lowest_t) {
+                    lowest_t = t;
+                    associatedObject = object;
+                    hit = true;
                 }
+
             }
 
             if (hit) {
-//                window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), finalColor);
+                ray.setPos(associatedObject.calculateRayTravelPos(ray.getPos(), ray.getDir()));
+
+                finalColor = runReflectionAndShadowRays(
+                        ray,
+                        associatedObject,
+                        sceneObjects,
+                        sceneLights);
                 window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), finalColor);
             }
 
-            if (ray.getPx() == 0) {
+            if (ray.getPx() == 0) { // draws a pixel white at x=0 for every row of rendered pixels
                 window.innerGameRenderer.setPixel(0, (int) ray.getPy(), new Vec3(255, 255, 255));
             }
         }

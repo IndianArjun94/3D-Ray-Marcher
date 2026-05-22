@@ -10,4 +10,7 @@ public interface SceneLight {
 
     double getBrightness();
     void setBrightness(double brightness);
+
+    double calculateRayTravel(Vec3 rayOrigin, Vec3 rayDir);
+    Vec3 calculateRayTravelPos(Vec3 rayOrigin, Vec3 rayDir);
 }

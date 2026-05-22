@@ -10,4 +10,7 @@ public interface SceneObject {
 
     double getReflectivity();
     void setReflectivity(double reflectivity);
+
+    double calculateRayTravel(Vec3 rayOrigin, Vec3 rayDir);
+    Vec3 calculateRayTravelPos(Vec3 rayOrigin, Vec3 rayDir);
 }
