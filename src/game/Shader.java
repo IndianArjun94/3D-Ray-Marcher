@@ -72,7 +72,7 @@ public class Shader {
         double currentReflectivity = object.getReflectivity();
 
 
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 10; j++) {
 
             boolean reflected = false;
 

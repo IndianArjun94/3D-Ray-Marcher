@@ -49,12 +49,56 @@ public class Sphere implements SceneObject {
         // (tD*tD) + 2(tD * oc) + oc^2
         // t^2(D*D) + 2t(D * oc) + (oc*oc) - r^2 = 0
 
-
         // if the ray misses, that means that (tD + oc)^2 must be greater than r^2, and the ray misses
         // this would be represented by if (b^2 - 4ac) is negative.
         // if (b^2 - 4ac) is = 0, then the ray skims the circle at one point, and if its > 0, then the ray could pass through the sphere, in one end and out the other.
 
-        return null;
+        // in  t^2(D*D) + 2t(D * oc) + (oc*oc) - r^2 = 0
+        // ax^2 + bx + c = 0
+        // x = t
+        // taking out x, we get
+        // a = D*D
+        // b = 2(D * oc)
+        // c = (oc*oc) - r^2
+
+        Vec3 D = rayDir;
+        Vec3 O = rayOrigin;
+        Vec3 C = pos;
+        Vec3 oc = new Vec3(O).subtract(C);
+        // double r = radius; already have this defined in this instance of sphere
+
+        double a = D.dot(D);
+        double b = 2*D.dot(oc);
+        double c = oc.dot(oc) - (r*r);
+
+        double discriminant = (b*b - 4*a*c);
+
+        if (discriminant < 0) {
+            return null;
+        }
+
+        double[] solutions = new double[2];
+
+        solutions[0] = (-b + Math.sqrt(discriminant))/(2*a);
+        solutions[1] = (-b - Math.sqrt(discriminant))/(2*a);
+
+        double t = -1;
+
+        if (solutions[0] > 0) {
+            t = solutions[0];
+        } else if (solutions[1] > 0) {
+            t = solutions[1];
+        }
+
+        if (t < 0) {
+            return null; // ray misses the sphere entirely
+        }
+
+        Vec3 finalHitPoint = new Vec3(D);
+        finalHitPoint.multiply(t);
+        finalHitPoint.add(O);
+
+        return finalHitPoint;
 
     }
 

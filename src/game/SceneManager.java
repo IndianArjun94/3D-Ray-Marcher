@@ -70,6 +70,10 @@ public class SceneManager implements Runnable {
 // High Overhead Center Fill (Crisp white light casting baseline geometry silhouettes)
         this.sceneLights.add(new LightPoint(new Vec3(0.0, 3.8, -4.5), new Vec3(255, 255, 255), 0.5));
 
+//        this.sceneLights.add(new LightPoint(new Vec3(0, 2, 0), new Vec3(255, 255, 255), 0.5));
+//        this.sceneObjects.add(new Plane(new Vec3(0, 0, -5), new Vec3(0, 0, 1), new Vec3(0, 0, 255), 1));  // Light Gray Floor
+//        this.sceneObjects.add(new Sphere(new Vec3(-1, 0, -1), 0.8, new Vec3(0, 0, 255), 0.75));   // Cyan (Deep Back Left)
+//        this.sceneObjects.add(new Sphere(new Vec3(1, 0, -1), 0.8, new Vec3(255, 0, 0), 0.75));   // Cyan (Deep Back Left)
 
     }
 
