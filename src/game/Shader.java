@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Shader {
 
     public static final double EPSILON = 0.01f;
     public static final double ROUGHNESS_SCALER = 0.4;
-    public static int rayCounter = 0;
-
+    public static AtomicInteger rayCounter = new AtomicInteger(0);
 //    Helpers
 
     private static double getBrightness(Ray primaryRay, SceneObject object, SceneLight light) {
@@ -60,7 +60,7 @@ public class Shader {
 
         for (SceneLight light : sceneLights) { // create shadow rays
             Ray shadowRay = new Ray(ray);
-            rayCounter++;
+            rayCounter.incrementAndGet();
             shadowRay.setColor(light.getColor());
 
             Vec3 newDir = new Vec3(light.getPos()).subtract(shadowRay.getPos());
@@ -154,6 +154,8 @@ public class Shader {
 
                 ray.setDir(roughDir);
             }
+
+            rayCounter.incrementAndGet();
 
         }
 

@@ -20,7 +20,7 @@ public class Ray {
         color = new Vec3(ray.getColor());
     }
 
-    public Ray(int px, int py, double W, double H, double FOV, Vec3 color) {
+    public Ray(double px, double py, double W, double H, double FOV, Vec3 color) {
         this.px = px;
         this.py = py;
 

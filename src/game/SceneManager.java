@@ -9,18 +9,18 @@ import static game.Shader.*;
 public class SceneManager implements Runnable {
 
     public Window window;
-    public ArrayList<Ray> primaryRays = new ArrayList<>();
+    //    public ArrayList<Ray> primaryRays = new ArrayList<>();
     public ArrayList<SceneObject> sceneObjects = new ArrayList<>();
     public ArrayList<SceneLight> sceneLights = new ArrayList<>();
     public Thread thread;
 
     public SceneManager(Window window) {
         this.window = window;
-        for (int y = 0; y < window.HEIGHT; y++) {
-            for (int x = 0; x < window.WIDTH; x++) {
-                this.primaryRays.add(new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255)));
-            }
-        }
+//        for (int y = 0; y < window.HEIGHT; y++) {
+//            for (int x = 0; x < window.WIDTH; x++) {
+//                this.primaryRays.add(new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255)));
+//            }
+//        }
 
 // --- 1. THE FINITE ROOM QUADS (CCW Winding Order) ---
 
@@ -30,7 +30,7 @@ public class SceneManager implements Runnable {
                 new Vec3(4.5, -3.0, 5.0),    // Front Right
                 new Vec3(4.5, -3.0, -7.0),   // Back Right
                 new Vec3(-4.5, -3.0, -7.0),  // Back Left
-                new Vec3(220, 220, 220), 0.0, 0.7
+                new Vec3(220, 220, 220), 0.3, 0.7
         ));
 
 // Back Wall (Medium Gray) - Normal points +Z (Forward)
@@ -39,7 +39,7 @@ public class SceneManager implements Runnable {
                 new Vec3(4.5, 4.0, -7.0),    // Top Right
                 new Vec3(-4.5, 4.0, -7.0),   // Top Left
                 new Vec3(-4.5, -3.0, -7.0),  // Bottom Left
-                new Vec3(160, 160, 160), 0.0, 0.5
+                new Vec3(160, 160, 160), 0.3, 0.5
         ));
 
 // Left Wall (Distinct Matte Crimson Red) - Normal points +X (Right)
@@ -48,7 +48,7 @@ public class SceneManager implements Runnable {
                 new Vec3(-4.5, 4.0, -7.0),   // Top Back
                 new Vec3(-4.5, 4.0, 5.0),    // Top Front
                 new Vec3(-4.5, -3.0, 5.0),   // Bottom Front
-                new Vec3(255, 65, 65), 0.0, 0.8
+                new Vec3(255, 65, 65), 0.4, 0.8
         ));
 
 // Right Wall (Distinct Matte Forest Green) - Normal points -X (Left)
@@ -57,7 +57,7 @@ public class SceneManager implements Runnable {
                 new Vec3(4.5, 4.0, 5.0),     // Top Front
                 new Vec3(4.5, 4.0, -7.0),    // Top Back
                 new Vec3(4.5, -3.0, -7.0),   // Bottom Back
-                new Vec3(65, 255, 65), 0.0, 0.6
+                new Vec3(65, 255, 65), 0.2, 0.6
         ));
 
 // Ceiling (Dark Gray) - Normal points -Y (Down)
@@ -66,7 +66,7 @@ public class SceneManager implements Runnable {
                 new Vec3(4.5, 4.0, -7.0),    // Back Right
                 new Vec3(4.5, 4.0, 5.0),     // Front Right
                 new Vec3(-4.5, 4.0, 5.0),    // Front Left
-                new Vec3(100, 100, 100), 0.0, 0.9
+                new Vec3(100, 100, 100), 0.3, 0.9
         ));
 
 // --- 2. THE SEVEN-SPHERE GEOMETRIC VARIETY ---
@@ -103,43 +103,43 @@ public class SceneManager implements Runnable {
     }
 
     public void run() {
-        final int SAMPLES_PER_PIXEL = 16;
-        final double AA_JITTER = 1.3; // antialiasing: the higher, the smoother edges, but blurrier
+        final int GRID_SAMPLES = 16; // per pixel
+        final int SAMPLES_PER_PIXEL = GRID_SAMPLES * GRID_SAMPLES;
 
-        for (Ray ray : primaryRays) {
-            Vec3 accumulatedColor = new Vec3(0,0,0);
 
-            for (int i = 0; i < SAMPLES_PER_PIXEL; i++) {
-                if (i > 0) {
-                    Random random = ThreadLocalRandom.current();
+        java.util.stream.IntStream.range(0, window.WIDTH * window.HEIGHT).parallel().forEach(pixel -> {
+            Random random = ThreadLocalRandom.current();
 
-                    int jitteredPx = (int) (ray.getPx() + random.nextInt(-1, 2)*AA_JITTER);
-                    int jitteredPy = (int) (ray.getPy() + random.nextInt(-1, 2)*AA_JITTER);
+            int y = Math.floorDiv(pixel, window.WIDTH);
+            int x = pixel-y*window.WIDTH;
 
-//                    int jitteredPx = (int) (ray.getPx() + random.nextDouble(-1, 1)*AA_JITTER);
-//                    int jitteredPy = (int) (ray.getPy() + random.nextDouble(-1, 1)*AA_JITTER);
+            Ray ray = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255));
 
-                    accumulatedColor.add(findColor(new Ray(jitteredPx, jitteredPy, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(ray.getColor())), sceneObjects, sceneLights));
-                    rayCounter++;
+            Vec3 accumulatedColor = new Vec3(0, 0, 0);
 
-                    continue;
+            for (int gx = 0; gx < GRID_SAMPLES; gx++) {
+                for (int gy = 0; gy < GRID_SAMPLES; gy++) {
+
+                    double cellOffsetX = (gx + random.nextDouble(0, 1)) / GRID_SAMPLES;
+                    double cellOffsetY = (gy + random.nextDouble(0, 1)) / GRID_SAMPLES;
+
+                    double jitteredX = x + cellOffsetX;
+                    double jitteredY = y + cellOffsetY;
+
+                    accumulatedColor.add(findColor(new Ray(jitteredX, jitteredY, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(ray.getColor())), sceneObjects, sceneLights));
+                    rayCounter.incrementAndGet();
                 }
-
-                accumulatedColor.add(findColor(ray, sceneObjects, sceneLights));
-
-                rayCounter++;
-
             }
 
             accumulatedColor.divide(SAMPLES_PER_PIXEL); // keep the range to 0-255
-
 
             window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), accumulatedColor);
 
             if (ray.getPx() == 0) {
                 window.innerGameRenderer.setPixel(0, (int) ray.getPy(), new Vec3(255, 255, 255));
             }
-        }
+//            }
+        });
 
         System.out.println("Rays Created: " + rayCounter);
     }
