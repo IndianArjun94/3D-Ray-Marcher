@@ -63,15 +63,23 @@ public class Sphere implements SceneObject {
         // b = 2(D * oc)
         // c = (oc*oc) - r^2
 
-        Vec3 D = rayDir;
-        Vec3 O = rayOrigin;
-        Vec3 C = pos;
-        Vec3 oc = new Vec3(O).subtract(C);
+        double dirX = rayDir.x;
+        double dirY = rayDir.y;
+        double dirZ = rayDir.z;
+
+        double oX = rayOrigin.x;
+        double oY = rayOrigin.y;
+        double oZ = rayOrigin.z;
+
+        double ocX = oX - this.pos.x;
+        double ocY = oY - this.pos.y;
+        double ocZ = oZ - this.pos.z;
+
         // double r = radius; already have this defined in this instance of sphere
 
-        double a = D.dot(D);
-        double b = 2*D.dot(oc);
-        double c = oc.dot(oc) - (r*r);
+        double a = dirX*dirX + dirY*dirY + dirZ*dirZ;
+        double b = 2*(dirX*ocX + dirY*ocY + dirZ*ocZ);
+        double c = (ocX*ocX + ocY*ocY + ocZ*ocZ) - (r*r);
 
         double discriminant = (b*b - 4*a*c);
 

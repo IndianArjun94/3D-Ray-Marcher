@@ -58,9 +58,11 @@ public class Shader {
     private static List<Ray> runShadowRays(Ray ray, SceneObject object, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
         ArrayList<Ray> goodShadowRays = new ArrayList<>();
 
-        for (SceneLight light : sceneLights) { // create shadow rays
+//        for (SceneLight light : sceneLights) { // create shadow rays
+        for (int i = 0; i < sceneLights.size(); i++) {
+            SceneLight light = sceneLights.get(i);
+
             Ray shadowRay = new Ray(ray);
-            rayCounter.incrementAndGet();
             shadowRay.setColor(light.getColor());
 
             Vec3 newDir = new Vec3(light.getPos()).subtract(shadowRay.getPos());
@@ -93,6 +95,8 @@ public class Shader {
             }
         }
 
+        rayCounter.addAndGet(sceneLights.size());
+
         return goodShadowRays;
     }
 
@@ -104,12 +108,17 @@ public class Shader {
 
         Ray ray = new Ray(_ray);
 
-        for (int i = 0; i < 10; i++) {
+        int i;
+
+        for (i = 0; i < 10; i++) {
             boolean hit = false;
             double lowest_t = Double.MAX_VALUE;
             SceneObject hitObject = null;
 
-            for (SceneObject object : sceneObjects) {
+//            for (SceneObject object : sceneObjects) {
+            for (int j = 0; j < sceneObjects.size(); j++) {
+                SceneObject object = sceneObjects.get(j);
+
                 double t = object.calculateRayTravel(ray.getPos(), ray.getDir());
                 if (t > 0 && t < lowest_t) {
                     lowest_t = t;
@@ -154,10 +163,9 @@ public class Shader {
 
                 ray.setDir(roughDir);
             }
-
-            rayCounter.incrementAndGet();
-
         }
+
+        rayCounter.addAndGet(i);
 
         return new Vec3(
                 Math.min(255, accumulatedColor.x),

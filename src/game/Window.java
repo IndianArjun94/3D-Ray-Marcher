@@ -13,7 +13,7 @@ public class Window {
     public JFrame frame;
     public final int WIDTH;
     public final int HEIGHT;
-    public final int FOV = 90;
+    public final int FOV = 60;
 
     public InnerGameRenderer innerGameRenderer;
 

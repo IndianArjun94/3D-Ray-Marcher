@@ -65,6 +65,55 @@ public class Ray {
         this.color = color;
     }
 
+    public Ray reset(double px, double py, double W, double H, double FOV, Vec3 color) {
+        this.px = px;
+        this.py = py;
+
+
+        // 1. screen space ----------------------------------------------------------------
+        Vec3 _dir = new Vec3(
+                (px / W) * 2 - 1,
+                1 - (py / H) * 2,
+                -1);
+
+        /* (px / W) * 2 - 1; between (left)-1 and (right)+1
+         * 1 - (py / H) * 2; between (top)+1 and (bottom)-1
+         * starts as -1, going straight forward out of the camera (origin, starting point)
+         * y uses a different formula to because y is by default inverted (top)+1 and (bottom)-1
+         *
+         * sets the direction of the rays (x, y)
+         * Aspect ratio 1:1, why?
+         * the formulas scale to: -1 to 1 for BOTH x and y, REGARDLESS of the Width and Height
+         */
+
+        // 2. adjust aspect ratio ----------------------------------------------------------------
+        _dir.multiply((W / H),1,1); // this changes the ASPECT RATIO to match the window size (example: _dx range: [-1 to 1] -> [-1.4 to 1])
+
+        // 3. apply FOV ----------------------------------------------------------------
+        double fovScale = Math.tan(Math.toRadians(FOV / 2));
+
+        _dir.multiply(fovScale,fovScale,1);
+
+        // 4. normalize ONCE ----------------------------------------------------------------
+        double length = Math.sqrt(_dir.x * _dir.x + _dir.y * _dir.y + _dir.z * _dir.z);
+        originalDir = new Vec3(_dir);
+        originalDir.divide(length);
+
+        /*
+         * keeps the directions equivalent to 1
+         * the distance adding all 3 will give you is equivalent to 1 (via the pythagorean theorem)
+         * divides by the total current length (via pythagorean theorem) to keep the length = 1 (example: 3/3 = 1)
+         */
+
+        dir = new Vec3(originalDir);
+
+        this.color = color;
+
+        return this;
+
+    }
+
+    @Deprecated
     public void tick() {
         pos.add(
                 dir.x * stepSize,

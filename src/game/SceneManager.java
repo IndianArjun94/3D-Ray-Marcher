@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static game.Shader.*;
 
@@ -49,7 +50,7 @@ public class SceneManager implements Runnable {
                 new Vec3(-4.5, 4.0, -7.0),   // Top Back
                 new Vec3(-4.5, 4.0, 5.0),    // Top Front
                 new Vec3(-4.5, -3.0, 5.0),   // Bottom Front
-                new Vec3(255, 65, 65), 0.4, 0.8
+                new Vec3(255, 65, 65), 0.4, 0.4
         ));
 
 // Right Wall (Distinct Matte Forest Green) - Normal points -X (Left)
@@ -58,7 +59,7 @@ public class SceneManager implements Runnable {
                 new Vec3(4.5, 4.0, 5.0),     // Top Front
                 new Vec3(4.5, 4.0, -7.0),    // Top Back
                 new Vec3(4.5, -3.0, -7.0),   // Bottom Back
-                new Vec3(65, 255, 65), 0.2, 0.6
+                new Vec3(65, 255, 65), 0.2, 0.4
         ));
 
 // Ceiling (Dark Gray) - Normal points -Y (Down)
@@ -106,13 +107,19 @@ public class SceneManager implements Runnable {
     public void run() {
         final int GRID_SAMPLES = 16; // per pixel
         final int SAMPLES_PER_PIXEL = GRID_SAMPLES * GRID_SAMPLES;
+        final double INVERTED_GRID_SAMPLES = (double) 1 /GRID_SAMPLES;
+        final double INVERTED_SAMPLES_PER_PIXEL = (double) 1/(SAMPLES_PER_PIXEL);
 
-        ForkJoinPool customThreadPool = new ForkJoinPool(512);
+        ForkJoinPool customThreadPool = new ForkJoinPool(24);
+
+        long time = System.nanoTime();
 
         customThreadPool.submit(() -> {
 
             java.util.stream.IntStream.range(0, window.WIDTH * window.HEIGHT).parallel().forEach(pixel -> {
                 Random random = ThreadLocalRandom.current();
+
+                int localRayCount = 0;
 
                 int y = Math.floorDiv(pixel, window.WIDTH);
                 int x = pixel - y * window.WIDTH;
@@ -124,27 +131,29 @@ public class SceneManager implements Runnable {
                 for (int gx = 0; gx < GRID_SAMPLES; gx++) {
                     for (int gy = 0; gy < GRID_SAMPLES; gy++) {
 
-                        double cellOffsetX = (gx + random.nextDouble(0, 1)) / GRID_SAMPLES;
-                        double cellOffsetY = (gy + random.nextDouble(0, 1)) / GRID_SAMPLES;
+                        double cellOffsetX = (gx + random.nextDouble(0, 1)) * INVERTED_GRID_SAMPLES;
+                        double cellOffsetY = (gy + random.nextDouble(0, 1)) * INVERTED_GRID_SAMPLES;
 
                         double jitteredX = x + cellOffsetX;
                         double jitteredY = y + cellOffsetY;
 
-                        accumulatedColor.add(findColor(new Ray(jitteredX, jitteredY, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(ray.getColor())), sceneObjects, sceneLights));
-                        rayCounter.incrementAndGet();
+                        accumulatedColor.add(findColor(ray.reset(jitteredX,jitteredY, window.WIDTH, window.HEIGHT, window.FOV, ray.getColor()), sceneObjects, sceneLights));
+                        localRayCount++;
                     }
                 }
 
-                accumulatedColor.divide(SAMPLES_PER_PIXEL); // keep the range to 0-255
+                accumulatedColor.multiply(INVERTED_SAMPLES_PER_PIXEL); // keep the range to 0-255
 
-                window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), accumulatedColor);
+                window.innerGameRenderer.setPixel(x, y, accumulatedColor);
 
                 if (ray.getPx() == 0) {
-                    window.innerGameRenderer.setPixel(0, (int) ray.getPy(), new Vec3(255, 255, 255));
+                    window.innerGameRenderer.setPixel(0, y, new Vec3(255, 255, 255));
                 }
-            });
-        });
 
-        System.out.println("Rays Created: " + rayCounter);
+                rayCounter.addAndGet(localRayCount);
+            });
+        }).join();
+
+        System.out.println("Rays Created: " + rayCounter + ", in " + (float)((System.nanoTime()-time)/1_000_000_0)/100 + " seconds");
     }
 }
