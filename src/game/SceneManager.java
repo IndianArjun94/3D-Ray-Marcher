@@ -98,7 +98,7 @@ public class SceneManager implements Runnable {
 
     public void start() {
         thread = new Thread(this, "rayManager");
-        thread.setPriority(1);
+        thread.setPriority(10);
         thread.start();
     }
 
