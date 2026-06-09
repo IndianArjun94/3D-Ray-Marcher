@@ -2,6 +2,7 @@ package game;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static game.Shader.*;
@@ -106,39 +107,42 @@ public class SceneManager implements Runnable {
         final int GRID_SAMPLES = 16; // per pixel
         final int SAMPLES_PER_PIXEL = GRID_SAMPLES * GRID_SAMPLES;
 
+        ForkJoinPool customThreadPool = new ForkJoinPool(512);
 
-        java.util.stream.IntStream.range(0, window.WIDTH * window.HEIGHT).parallel().forEach(pixel -> {
-            Random random = ThreadLocalRandom.current();
+        customThreadPool.submit(() -> {
 
-            int y = Math.floorDiv(pixel, window.WIDTH);
-            int x = pixel-y*window.WIDTH;
+            java.util.stream.IntStream.range(0, window.WIDTH * window.HEIGHT).parallel().forEach(pixel -> {
+                Random random = ThreadLocalRandom.current();
 
-            Ray ray = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255));
+                int y = Math.floorDiv(pixel, window.WIDTH);
+                int x = pixel - y * window.WIDTH;
 
-            Vec3 accumulatedColor = new Vec3(0, 0, 0);
+                Ray ray = new Ray(x, y, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(255, 255, 255));
 
-            for (int gx = 0; gx < GRID_SAMPLES; gx++) {
-                for (int gy = 0; gy < GRID_SAMPLES; gy++) {
+                Vec3 accumulatedColor = new Vec3(0, 0, 0);
 
-                    double cellOffsetX = (gx + random.nextDouble(0, 1)) / GRID_SAMPLES;
-                    double cellOffsetY = (gy + random.nextDouble(0, 1)) / GRID_SAMPLES;
+                for (int gx = 0; gx < GRID_SAMPLES; gx++) {
+                    for (int gy = 0; gy < GRID_SAMPLES; gy++) {
 
-                    double jitteredX = x + cellOffsetX;
-                    double jitteredY = y + cellOffsetY;
+                        double cellOffsetX = (gx + random.nextDouble(0, 1)) / GRID_SAMPLES;
+                        double cellOffsetY = (gy + random.nextDouble(0, 1)) / GRID_SAMPLES;
 
-                    accumulatedColor.add(findColor(new Ray(jitteredX, jitteredY, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(ray.getColor())), sceneObjects, sceneLights));
-                    rayCounter.incrementAndGet();
+                        double jitteredX = x + cellOffsetX;
+                        double jitteredY = y + cellOffsetY;
+
+                        accumulatedColor.add(findColor(new Ray(jitteredX, jitteredY, window.WIDTH, window.HEIGHT, window.FOV, new Vec3(ray.getColor())), sceneObjects, sceneLights));
+                        rayCounter.incrementAndGet();
+                    }
                 }
-            }
 
-            accumulatedColor.divide(SAMPLES_PER_PIXEL); // keep the range to 0-255
+                accumulatedColor.divide(SAMPLES_PER_PIXEL); // keep the range to 0-255
 
-            window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), accumulatedColor);
+                window.innerGameRenderer.setPixel((int) ray.getPx(), (int) ray.getPy(), accumulatedColor);
 
-            if (ray.getPx() == 0) {
-                window.innerGameRenderer.setPixel(0, (int) ray.getPy(), new Vec3(255, 255, 255));
-            }
-//            }
+                if (ray.getPx() == 0) {
+                    window.innerGameRenderer.setPixel(0, (int) ray.getPy(), new Vec3(255, 255, 255));
+                }
+            });
         });
 
         System.out.println("Rays Created: " + rayCounter);
