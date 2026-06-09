@@ -8,8 +8,11 @@ public interface SceneObject {
     Vec3 getColor();
     void setColor(Vec3 rgb);
 
-    double getReflectivity();
-    void setReflectivity(double reflectivity);
+    double getMetallic();
+    void setMetallic(double metallic);
+
+    double getRoughness();
+    void setRoughness(double roughness);
 
     double calculateRayTravel(Vec3 rayOrigin, Vec3 rayDir);
     Vec3 calculateRayTravelPos(Vec3 rayOrigin, Vec3 rayDir);

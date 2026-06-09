@@ -103,6 +103,14 @@ public class Vec3 {
         return x*normal.x + y*normal.y + z*normal.z;
     }
 
+    public static Vec3 cross(Vec3 n, Vec3 e) {
+        return new Vec3(
+                n.y*e.z - n.z*e.y,
+                n.z*e.x - n.x*e.z,
+                n.x*e.y - n.y*e.x
+        );
+    }
+
     public double length() {
         return Math.sqrt(x*x + y*y + z*z);
     }
