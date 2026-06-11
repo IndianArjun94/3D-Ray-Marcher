@@ -55,6 +55,8 @@ public class PresetScenes {
             sceneObjects.add(new Sphere(new Vec3(1.8, 1.3, -4.8), 0.7, new Vec3(255, 255, 0), 0.5, 0.2));   // Yellow (Upper Right)
 
             sceneLights.add(new PointLight(new Vec3(0.0, 3.8, -4.5), new Vec3(255, 255, 255), 0.75));
+            sceneLights.add(new PointLight(new Vec3(3, 3.8, -3), new Vec3(255, 255, 255), 0.75));
+            sceneLights.add(new PointLight(new Vec3(-3, 3.8, -3), new Vec3(255, 255, 255), 0.75));
         } else if (scene == 2) {
 
             sceneObjects.add(new Plane(

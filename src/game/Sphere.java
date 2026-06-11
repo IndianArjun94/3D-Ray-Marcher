@@ -81,6 +81,10 @@ public class Sphere implements SceneObject {
         double b = 2*(dirX*ocX + dirY*ocY + dirZ*ocZ);
         double c = (ocX*ocX + ocY*ocY + ocZ*ocZ) - (r*r);
 
+        if (b > 0) {
+            return -1;
+        }
+
         double discriminant = (b*b - 4*a*c);
 
         if (discriminant < 0) {
@@ -121,12 +125,9 @@ public class Sphere implements SceneObject {
             return null;
         }
 
-        Vec3 D = rayDir;
-        Vec3 O = rayOrigin;
-
-        Vec3 finalHitPoint = new Vec3(D);
+        Vec3 finalHitPoint = new Vec3(rayDir);
         finalHitPoint.multiply(t);
-        finalHitPoint.add(O);
+        finalHitPoint.add(rayOrigin);
 
         return finalHitPoint;
 

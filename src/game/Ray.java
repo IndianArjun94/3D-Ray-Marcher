@@ -26,7 +26,7 @@ public class Ray {
 
 
         // 1. screen space ----------------------------------------------------------------
-        Vec3 _dir = new Vec3(
+        dir = new Vec3(
                 (px / W) * 2 - 1,
                 1 - (py / H) * 2,
                 -1);
@@ -42,17 +42,18 @@ public class Ray {
          */
 
         // 2. adjust aspect ratio ----------------------------------------------------------------
-        _dir.multiply((W / H),1,1); // this changes the ASPECT RATIO to match the window size (example: _dx range: [-1 to 1] -> [-1.4 to 1])
+        dir.multiply((W / H),1,1); // this changes the ASPECT RATIO to match the window size (example: _dx range: [-1 to 1] -> [-1.4 to 1])
 
         // 3. apply FOV ----------------------------------------------------------------
         double fovScale = Math.tan(Math.toRadians(FOV / 2));
 
-        _dir.multiply(fovScale,fovScale,1);
+        dir.multiply(fovScale,fovScale,1);
 
         // 4. normalize ONCE ----------------------------------------------------------------
-        double length = Math.sqrt(_dir.x * _dir.x + _dir.y * _dir.y + _dir.z * _dir.z);
-        originalDir = new Vec3(_dir);
-        originalDir.divide(length);
+//        double length = Math.sqrt(_dir.x * _dir.x + _dir.y * _dir.y + _dir.z * _dir.z);
+//        originalDir = new Vec3(_dir);
+//        originalDir.divide(length);
+        dir.normalize();
 
         /*
          * keeps the directions equivalent to 1
@@ -60,7 +61,7 @@ public class Ray {
          * divides by the total current length (via pythagorean theorem) to keep the length = 1 (example: 3/3 = 1)
          */
 
-        dir = new Vec3(originalDir);
+        originalDir = new Vec3(dir);
 
         this.color = color;
     }
@@ -71,7 +72,7 @@ public class Ray {
 
 
         // 1. screen space ----------------------------------------------------------------
-        Vec3 _dir = new Vec3(
+        dir = new Vec3(
                 (px / W) * 2 - 1,
                 1 - (py / H) * 2,
                 -1);
@@ -87,17 +88,18 @@ public class Ray {
          */
 
         // 2. adjust aspect ratio ----------------------------------------------------------------
-        _dir.multiply((W / H),1,1); // this changes the ASPECT RATIO to match the window size (example: _dx range: [-1 to 1] -> [-1.4 to 1])
+        dir.multiply((W / H),1,1); // this changes the ASPECT RATIO to match the window size (example: _dx range: [-1 to 1] -> [-1.4 to 1])
 
         // 3. apply FOV ----------------------------------------------------------------
         double fovScale = Math.tan(Math.toRadians(FOV / 2));
 
-        _dir.multiply(fovScale,fovScale,1);
+        dir.multiply(fovScale,fovScale,1);
 
         // 4. normalize ONCE ----------------------------------------------------------------
-        double length = Math.sqrt(_dir.x * _dir.x + _dir.y * _dir.y + _dir.z * _dir.z);
-        originalDir = new Vec3(_dir);
-        originalDir.divide(length);
+//        double length = Math.sqrt(_dir.x * _dir.x + _dir.y * _dir.y + _dir.z * _dir.z);
+//        originalDir = new Vec3(_dir);
+//        originalDir.divide(length);
+        dir.normalize();
 
         /*
          * keeps the directions equivalent to 1
@@ -105,7 +107,7 @@ public class Ray {
          * divides by the total current length (via pythagorean theorem) to keep the length = 1 (example: 3/3 = 1)
          */
 
-        dir = new Vec3(originalDir);
+        originalDir = new Vec3(dir);
 
         this.color = color;
 
@@ -156,6 +158,12 @@ public class Ray {
         this.pos = pos;
     }
 
+    public void setPos(double x, double y, double z) {
+        this.pos.x = x;
+        this.pos.y = y;
+        this.pos.z = z;
+    }
+
     public double getPx() {
         return px;
     }
@@ -194,6 +202,12 @@ public class Ray {
 
     public void setDir(Vec3 dir) {
         this.dir = dir;
+    }
+
+    public void setDir(double x, double y, double z) {
+        this.dir.x = x;
+        this.dir.y = y;
+        this.dir.z = z;
     }
 
     public double getStepSize() {

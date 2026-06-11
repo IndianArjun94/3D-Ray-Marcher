@@ -1,6 +1,5 @@
 package game;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -19,57 +18,94 @@ public class Shader {
 
         L.normalize();
 
-        double I = Math.max(0, N.dot(L));
+        double I = Math.max(0, N.dot(L)); // positive, usually < 1
 
         return I * light.getBrightness();
     }
 
     public static Vec3 localColor(Ray ray, SceneObject object, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
-        List<Ray> shadowRays = runShadowRays(
+//        List<Ray> shadowRays = runShadowRays(
+//                ray,
+//                object,
+//                sceneObjects,
+//                sceneLights
+//        );
+
+//        Vec3 ambient = new Vec3(object.getColor()).multiply(0.1);
+
+        double ambientR = object.getColor().x * 0.1;
+        double ambientG = object.getColor().y * 0.1;
+        double ambientB = object.getColor().z * 0.1;
+
+//        Vec3 finalColor = new Vec3(object.getColor());
+
+        double finalR = object.getColor().x;
+        double finalG = object.getColor().y;
+        double finalB = object.getColor().z;
+
+        Vec3 totalLight = getLightingFromShadowRays(
                 ray,
                 object,
                 sceneObjects,
                 sceneLights
         );
 
-        Vec3 ambient = new Vec3(object.getColor()).multiply(0.1);
+//        finalColor.multiply(totalLight);
 
-        Vec3 finalColor = new Vec3(object.getColor());
-        Vec3 totalLight = new Vec3(0, 0, 0);
+        finalR *= totalLight.x;
+        finalG *= totalLight.y;
+        finalB *= totalLight.z;
 
+        finalR += ambientR;
+        finalG += ambientG;
+        finalB += ambientB;
 
-        for (Ray shadowRay : shadowRays) {
-            totalLight.add(new Vec3(shadowRay.getColor()));
-        }
+        finalR = Math.min(255, finalR);
+        finalG = Math.min(255, finalG);
+        finalB = Math.min(255, finalB);
 
-        totalLight.divide(255);
+        finalR *= 1-object.getMetallic();
+        finalG *= 1-object.getMetallic();
+        finalB *= 1-object.getMetallic();
 
-        finalColor.multiply(totalLight);
-
-        finalColor.add(ambient);
-
-        finalColor.x = Math.min(255, finalColor.x);
-        finalColor.y = Math.min(255, finalColor.y);
-        finalColor.z = Math.min(255, finalColor.z);
-
-        return finalColor.multiply(1-object.getMetallic());
+        return new Vec3(finalR, finalG, finalB);
     }
 
-    private static List<Ray> runShadowRays(Ray ray, SceneObject object, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
-        ArrayList<Ray> goodShadowRays = new ArrayList<>();
+    private static Vec3 getLightingFromShadowRays(Ray ray, SceneObject object, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
 
-//        for (SceneLight light : sceneLights) { // create shadow rays
+//        Vec3 totalColor = new Vec3(0, 0, 0);
+
+        double totalR = 0;
+        double totalG = 0;
+        double totalB = 0;
+
         for (int i = 0; i < sceneLights.size(); i++) {
             SceneLight light = sceneLights.get(i);
 
             Ray shadowRay = new Ray(ray);
-            shadowRay.setColor(light.getColor());
+//            shadowRay.setColor(light.getColor());
 
-            Vec3 newDir = new Vec3(light.getPos()).subtract(shadowRay.getPos());
-            newDir.normalize();
-            shadowRay.setDir(newDir); // make the ray face the light
+//            Vec3 newDir = new Vec3(light.getPos()).subtract(shadowRay.getPos());
 
-            shadowRay.getPos().add(new Vec3(newDir).multiply(EPSILON));
+            double dirX = light.getPos().x - shadowRay.getPos().x;
+            double dirY = light.getPos().y - shadowRay.getPos().y;
+            double dirZ = light.getPos().z - shadowRay.getPos().z;
+
+//            newDir.normalize();
+
+            double length = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
+
+            dirX = dirX / length;
+            dirY = dirY / length;
+            dirZ = dirZ / length;
+
+//            shadowRay.setDir(newDir); // make the ray face the light
+
+            shadowRay.setDir(dirX, dirY, dirZ);
+
+            Vec3 currentPos = shadowRay.getPos();
+
+            shadowRay.setPos(currentPos.x + dirX * EPSILON, currentPos.y + dirY * EPSILON, currentPos.z + dirZ * EPSILON);
 
             boolean isShadowed = false;
 
@@ -86,27 +122,49 @@ public class Shader {
             if (!isShadowed) {
                 shadowRay.setPos(light.calculateRayTravelPos(shadowRay.getPos(), shadowRay.getDir()));
 
-                shadowRay.setColor(
-                        new Vec3(shadowRay.getColor()).multiply(
-                                Shader.getBrightness(ray, object, light)
-                        ));
+//                shadowRay.setColor(
+//                        new Vec3(shadowRay.getColor()).multiply(
+//                                Shader.getBrightness(ray, object, light)
+//                        ));
 
-                goodShadowRays.add(shadowRay);
+                double brightness = Shader.getBrightness(ray, object, light);
+
+                totalR += light.getColor().x * brightness;
+                totalG += light.getColor().y * brightness;
+                totalB += light.getColor().z * brightness;
+
+//                totalColor.add(new Vec3(shadowRay.getColor()).multiply(
+//                        Shader.getBrightness(ray, object, light)
+//                ));
             }
         }
 
         rayCounter.addAndGet(sceneLights.size());
 
-        return goodShadowRays;
+//        totalColor.divide(255);
+
+        totalR /= 255;
+        totalG /= 255;
+        totalB /= 255;
+
+        return new Vec3(totalR, totalG, totalB);
     }
 
 //    Full Calculations
 
     public static Vec3 findColor(Ray _ray, List<SceneObject> sceneObjects, List<SceneLight> sceneLights) {
-        Vec3 throughput = new Vec3(1, 1, 1); // tint
-        Vec3 accumulatedColor = new Vec3(0,0,0); // color
+//        Vec3 throughput = new Vec3(1, 1, 1); // tint
+//        Vec3 accumulatedColor = new Vec3(0,0,0); // color
 
-        Ray ray = new Ray(_ray);
+        double throughputX = 1;
+        double throughputY = 1;
+        double throughputZ = 1;
+
+        double accumulatedX = 0;
+        double accumulatedY = 0;
+        double accumulatedZ = 0;
+
+        Ray reflectionRay = new Ray(_ray);
 
         int i;
 
@@ -115,11 +173,10 @@ public class Shader {
             double lowest_t = Double.MAX_VALUE;
             SceneObject hitObject = null;
 
-//            for (SceneObject object : sceneObjects) {
             for (int j = 0; j < sceneObjects.size(); j++) {
                 SceneObject object = sceneObjects.get(j);
 
-                double t = object.calculateRayTravel(ray.getPos(), ray.getDir());
+                double t = object.calculateRayTravel(reflectionRay.getPos(), reflectionRay.getDir());
                 if (t > 0 && t < lowest_t) {
                     lowest_t = t;
                     hitObject = object;
@@ -131,46 +188,72 @@ public class Shader {
                 break;
             }
 
-            ray.setPos(hitObject.calculateRayTravelPos(ray.getPos(), ray.getDir()));
+            reflectionRay.setPos(hitObject.calculateRayTravelPos(reflectionRay.getPos(), reflectionRay.getDir()));
 
-            Vec3 localColor = localColor(ray, hitObject, sceneObjects, sceneLights);
-            localColor.multiply(throughput);
-            accumulatedColor.add(localColor);
+            Vec3 localColor = localColor(reflectionRay, hitObject, sceneObjects, sceneLights);
 
-            Vec3 dielectricTint = new Vec3(255 * 0.04, 255 * 0.04, 255 * 0.04).multiply(1-hitObject.getMetallic()); // 4% white base
-            Vec3 metallicTint = new Vec3(hitObject.getColor()).multiply(hitObject.getMetallic());
+            localColor.x *= throughputX;
+            localColor.y *= throughputY;
+            localColor.z *= throughputZ;
 
-            Vec3 combinedTint = new Vec3(dielectricTint).add(metallicTint).divide(255);
+            accumulatedX += localColor.x;
+            accumulatedY += localColor.y;
+            accumulatedZ += localColor.z;
 
-            throughput.multiply(combinedTint);
+//            Vec3 dielectricTint = new Vec3(255 * 0.04, 255 * 0.04, 255 * 0.04).multiply(1-hitObject.getMetallic()); // 4% white base
+//            Vec3 metallicTint = new Vec3(hitObject.getColor()).multiply(hitObject.getMetallic());
 
-            Vec3 normal = hitObject.normal(ray.getPos(), ray.getDir());
-            ray.getPos().add(normal.multiply(EPSILON)); // Prevent getting stuck in the wall
-            ray.reflect(hitObject);
+            double defaultDielectric = 255 * 0.04 * 1 - hitObject.getMetallic();
+
+            double metallicX = hitObject.getColor().x * hitObject.getMetallic();
+            double metallicY = hitObject.getColor().y * hitObject.getMetallic();
+            double metallicZ = hitObject.getColor().z * hitObject.getMetallic();
+
+//            Vec3 combinedTint = new Vec3(dielectricTint).add(metallicTint).divide(255);
+
+            double combinedX = (defaultDielectric + metallicX) / 255;
+            double combinedY = (defaultDielectric + metallicY) / 255;
+            double combinedZ = (defaultDielectric + metallicZ) / 255;
+
+//            throughput.multiply(combinedTint);
+
+            throughputX *= combinedX;
+            throughputY *= combinedY;
+            throughputZ *= combinedZ;
+
+            Vec3 normal = hitObject.normal(reflectionRay.getPos(), reflectionRay.getDir());
+            reflectionRay.getPos().add(normal.multiply(EPSILON)); // Prevent getting stuck in the wall
+            reflectionRay.reflect(hitObject);
 
             if (hitObject.getRoughness() != 0) {
                 Random random = ThreadLocalRandom.current();
-                Vec3 perfectDir = ray.getDir();
-                double variable = hitObject.getRoughness()*ROUGHNESS_SCALER;
+                Vec3 perfectDir = reflectionRay.getDir();
+                double variable = hitObject.getRoughness() * ROUGHNESS_SCALER;
 
-                Vec3 randomized = new Vec3(
-                        random.nextDouble(-variable,variable),
-                        random.nextDouble(-variable,variable),
-                        random.nextDouble(-variable,variable));
+                double dx = random.nextDouble(-variable, variable);
+                double dy = random.nextDouble(-variable, variable);
+                double dz = random.nextDouble(-variable, variable);
 
-                Vec3 roughDir = perfectDir.add(randomized);
-                roughDir.normalize();
+                dx += perfectDir.x;
+                dy += perfectDir.y;
+                dz += perfectDir.z;
 
-                ray.setDir(roughDir);
+                double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                dx /= length;
+                dy /= length;
+                dz /= length;
+
+                reflectionRay.setDir(dx, dy, dz);
             }
         }
 
         rayCounter.addAndGet(i);
 
         return new Vec3(
-                Math.min(255, accumulatedColor.x),
-                Math.min(255, accumulatedColor.y),
-                Math.min(255, accumulatedColor.z));
+                Math.min(255, accumulatedX),
+                Math.min(255, accumulatedY),
+                Math.min(255, accumulatedZ));
     }
 
     @Deprecated

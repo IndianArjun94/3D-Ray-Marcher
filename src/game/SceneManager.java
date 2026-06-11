@@ -18,7 +18,7 @@ public class SceneManager implements Runnable {
     public SceneManager(Window window) {
         this.window = window;
 
-        PresetScenes.setScene(2, sceneObjects, sceneLights);
+        PresetScenes.setScene(1, sceneObjects, sceneLights);
 
     }
 
@@ -34,7 +34,7 @@ public class SceneManager implements Runnable {
         final double INVERTED_GRID_SAMPLES = (double) 1 /GRID_SAMPLES;
         final double INVERTED_SAMPLES_PER_PIXEL = (double) 1/(SAMPLES_PER_PIXEL);
 
-        ForkJoinPool customThreadPool = new ForkJoinPool(24);
+        ForkJoinPool customThreadPool = new ForkJoinPool(28);
 
         long time = System.nanoTime();
 

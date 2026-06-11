@@ -12,11 +12,11 @@ public class PointLight implements SceneLight {
     }
 
     public double distance(Vec3 pos) {
-        Vec3 distance = new Vec3(pos);
+        double distX = pos.x-this.pos.x;
+        double distY = pos.y-this.pos.y;
+        double distZ = pos.z-this.pos.z;
 
-        distance.subtract(this.pos);
-
-        return distance.length();
+        return Math.sqrt(distX*distX + distY*distY + distZ*distZ);
     }
 
     public Vec3 getDirectionFrom(Vec3 surfacePos) { // uses sphere logic
@@ -70,15 +70,27 @@ public class PointLight implements SceneLight {
         // b = 2(D * oc)
         // c = (oc*oc) - r^2
 
-        Vec3 D = rayDir;
-        Vec3 O = rayOrigin;
-        Vec3 C = pos;
-        Vec3 oc = new Vec3(O).subtract(C);
+        double dirX = rayDir.x;
+        double dirY = rayDir.y;
+        double dirZ = rayDir.z;
+
+        double oX = rayOrigin.x;
+        double oY = rayOrigin.y;
+        double oZ = rayOrigin.z;
+
+        double ocX = oX - this.pos.x;
+        double ocY = oY - this.pos.y;
+        double ocZ = oZ - this.pos.z;
+
         // double r = radius; already have this defined in this instance of sphere
 
-        double a = D.dot(D);
-        double b = 2*D.dot(oc);
-        double c = oc.dot(oc) - (0.01*0.01); // light has no radius, so we use an arbitrary number
+        double a = dirX*dirX + dirY*dirY + dirZ*dirZ;
+        double b = 2*(dirX*ocX + dirY*ocY + dirZ*ocZ);
+        double c = (ocX*ocX + ocY*ocY + ocZ*ocZ) - (0.0001);
+
+        if (b > 0) {
+            return -1;
+        }
 
         double discriminant = (b*b - 4*a*c);
 
@@ -88,8 +100,8 @@ public class PointLight implements SceneLight {
 
         double[] solutions = new double[2];
 
-        solutions[0] = (-b + Math.sqrt(discriminant))/(2*a);
-        solutions[1] = (-b - Math.sqrt(discriminant))/(2*a);
+        solutions[0] = (-b - Math.sqrt(discriminant))/(2*a);
+        solutions[1] = (-b + Math.sqrt(discriminant))/(2*a);
 
         double t = -1;
 
@@ -104,13 +116,6 @@ public class PointLight implements SceneLight {
         }
 
         return t;
-
-//        Vec3 finalHitPoint = new Vec3(D);
-//        finalHitPoint.multiply(t);
-//        finalHitPoint.add(O);
-//
-//        return finalHitPoint;
-
     }
 
     public Vec3 calculateRayTravelPos(Vec3 rayOrigin, Vec3 rayDir) {
@@ -120,12 +125,9 @@ public class PointLight implements SceneLight {
             return null;
         }
 
-        Vec3 D = rayDir;
-        Vec3 O = rayOrigin;
-
-        Vec3 finalHitPoint = new Vec3(D);
+        Vec3 finalHitPoint = new Vec3(rayDir);
         finalHitPoint.multiply(t);
-        finalHitPoint.add(O);
+        finalHitPoint.add(rayOrigin);
 
         return finalHitPoint;
 

@@ -22,44 +22,85 @@ public class Plane implements SceneObject {
     }
 
     public double calculateRayTravel(Vec3 rayOrigin, Vec3 rayDir) {
-        Vec3 D = rayDir;
-        Vec3 O = rayOrigin;
-        Vec3 P0 = coord1;
+        double Dx = rayDir.x;
+        double Dy = rayDir.y;
+        double Dz = rayDir.z;
 
-        Vec3 edge1Vector = new Vec3(coord2).subtract(coord1); // [triangle 1] we don't normalize because it wastes system resources and is unnecessary at this step
-        Vec3 edge2Vector = new Vec3(coord3).subtract(coord2); // [triangle 1]
+        double Ox = rayOrigin.x;
+        double Oy = rayOrigin.y;
+        double Oz = rayOrigin.z;
 
-        Vec3 n = Vec3.cross(edge1Vector, edge2Vector).normalize();
+        double P0x = coord1.x;
+        double P0y = coord1.y;
+        double P0z = coord1.z;
 
-        if (Math.abs(n.dot(D)) < 0.0001) {
+        double edge1VectorX = coord2.x-coord1.x;
+        double edge1VectorY = coord2.y-coord1.y;
+        double edge1VectorZ = coord2.z-coord1.z;
+
+        double edge2VectorX = coord3.x-coord2.x;
+        double edge2VectorY = coord3.y-coord2.y;
+        double edge2VectorZ = coord3.z-coord2.z;
+
+        double nx = edge1VectorY*edge2VectorZ - edge1VectorZ*edge2VectorY;
+        double ny = edge1VectorZ*edge2VectorX - edge1VectorX*edge2VectorZ;
+        double nz = edge1VectorX*edge2VectorY - edge1VectorY*edge2VectorX;
+
+        double nD_dot = nx*Dx + ny*Dy + nz*Dz;
+
+        if (Math.abs(nD_dot) < 0.0001) {
             return -1;
         }
 
-        double t = (-n.dot(new Vec3(O).subtract(P0))) / (n.dot(D));
+        double t = (-nx*(Ox-P0x) - ny*(Oy-P0y) - nz*(Oz-P0z)) / nD_dot;
 
-        Vec3 P = new Vec3(D).multiply(t).add(O); // final hit point
+        double Px = Dx*t + Ox;
+        double Py = Dy*t + Oy;
+        double Pz = Dz*t + Oz;
 
+        double edge3VectorX = coord1.x - coord3.x;
+        double edge3VectorY = coord1.y - coord3.y;
+        double edge3VectorZ = coord1.z - coord3.z;
 
-        Vec3 edge3Vector = new Vec3(coord1).subtract(coord3); // [shared diagonal]
-        Vec3 edge4Vector = new Vec3(coord4).subtract(coord3); // [triangle 2]
-        Vec3 edge5Vector = new Vec3(coord1).subtract(coord4); // [triangle 2]
+        double edge4VectorX = coord4.x - coord3.x;
+        double edge4VectorY = coord4.y - coord3.y;
+        double edge4VectorZ = coord4.z - coord3.z;
 
-        Vec3 e1InsideNormal = Vec3.cross(n, edge1Vector);
-        Vec3 e2InsideNormal = Vec3.cross(n, edge2Vector);
-        Vec3 e3InsideNormalT1 = Vec3.cross(n, edge3Vector);
+        double edge5VectorX = coord1.x - coord4.x;
+        double edge5VectorY = coord1.y - coord4.y;
+        double edge5VectorZ = coord1.z - coord4.z;
 
-        Vec3 e3InsideNormalT2 = Vec3.cross(edge3Vector, n);
-        Vec3 e4InsideNormal = Vec3.cross(n, edge4Vector);
-        Vec3 e5InsideNormal = Vec3.cross(n, edge5Vector);
+        double e1InsideNormalX = ny*edge1VectorZ - nz*edge1VectorY;
+        double e1InsideNormalY = nz*edge1VectorX - nx*edge1VectorZ;
+        double e1InsideNormalZ = nx*edge1VectorY - ny*edge1VectorX;
+
+        double e2InsideNormalX = ny*edge2VectorZ - nz*edge2VectorY;
+        double e2InsideNormalY = nz*edge2VectorX - nx*edge2VectorZ;
+        double e2InsideNormalZ = nx*edge2VectorY - ny*edge2VectorX;
+
+        double e3InsideNormalT1X = ny*edge3VectorZ - nz*edge3VectorY;
+        double e3InsideNormalT1Y = nz*edge3VectorX - nx*edge3VectorZ;
+        double e3InsideNormalT1Z = nx*edge3VectorY - ny*edge3VectorX;
+
+        double e3InsideNormalT2X = edge3VectorY*nz - edge3VectorZ*ny;
+        double e3InsideNormalT2Y = edge3VectorZ*nx - edge3VectorX*nz;
+        double e3InsideNormalT2Z = edge3VectorX*ny - edge3VectorY*nx;
+
+        double e4InsideNormalX = ny*edge4VectorZ - nz*edge4VectorY;
+        double e4InsideNormalY = nz*edge4VectorX - nx*edge4VectorZ;
+        double e4InsideNormalZ = nx*edge4VectorY - ny*edge4VectorX;
+
+        double e5InsideNormalX = ny*edge5VectorZ - nz*edge5VectorY;
+        double e5InsideNormalY = nz*edge5VectorX - nx*edge5VectorZ;
+        double e5InsideNormalZ = nx*edge5VectorY - ny*edge5VectorX;
 
         int inHalves = 0;
 
-        if (new Vec3(P).subtract(coord1).dot(e1InsideNormal) > 0) {
+        if ((Px-coord1.x)*e1InsideNormalX + (Py-coord1.y)*e1InsideNormalY + (Pz-coord1.z)*e1InsideNormalZ > 0) {
             inHalves++;
-        } if (new Vec3(P).subtract(coord2).dot(e2InsideNormal) > 0) {
+        } if ((Px-coord2.x)*e2InsideNormalX + (Py-coord2.y)*e2InsideNormalY + (Pz-coord2.z)*e2InsideNormalZ > 0) {
             inHalves++;
-        } if (new Vec3(P).subtract(coord3).dot(e3InsideNormalT1) > 0) {
-
+        } if ((Px-coord3.x)*e3InsideNormalT1X + (Py-coord3.y)*e3InsideNormalT1Y + (Pz-coord3.z)*e3InsideNormalT1Z > 0) {
             inHalves++;
         }
 
@@ -69,11 +110,11 @@ public class Plane implements SceneObject {
             inHalves = 0;
         }
 
-        if (new Vec3(P).subtract(coord3).dot(e3InsideNormalT2) > 0) {
+        if ((Px-coord3.x)*e3InsideNormalT2X + (Py-coord3.y)*e3InsideNormalT2Y + (Pz-coord3.z)*e3InsideNormalT2Z > 0) {
             inHalves++;
-        } if (new Vec3(P).subtract(coord4).dot(e4InsideNormal) > 0) {
+        } if ((Px-coord4.x)*e4InsideNormalX + (Py-coord4.y)*e4InsideNormalY + (Pz-coord4.z)*e4InsideNormalZ > 0) {
             inHalves++;
-        } if (new Vec3(P).subtract(coord4).dot(e5InsideNormal) > 0) {
+        } if ((Px-coord4.x)*e5InsideNormalX + (Py-coord4.y)*e5InsideNormalY + (Pz-coord4.z)*e5InsideNormalZ > 0) {
             inHalves++;
         }
 
@@ -92,12 +133,9 @@ public class Plane implements SceneObject {
             return null;
         }
 
-        Vec3 D = rayDir;
-        Vec3 O = rayOrigin;
-
-        Vec3 finalHitPoint = new Vec3(D);
+        Vec3 finalHitPoint = new Vec3(rayDir);
         finalHitPoint.multiply(t);
-        finalHitPoint.add(O);
+        finalHitPoint.add(rayOrigin);
 
         return finalHitPoint;
 
@@ -105,16 +143,29 @@ public class Plane implements SceneObject {
 
     @Override
     public Vec3 normal(Vec3 pos, Vec3 dir) {
-        Vec3 edge1Vector = new Vec3(coord2).subtract(coord1); // [triangle 1]
-        Vec3 edge2Vector = new Vec3(coord3).subtract(coord2); // [triangle 1]
+        double edge1VectorX = coord2.x-coord1.x;
+        double edge1VectorY = coord2.y-coord1.y;
+        double edge1VectorZ = coord2.z-coord1.z;
 
-        Vec3 n = Vec3.cross(edge1Vector, edge2Vector).normalize();
+        double edge2VectorX = coord3.x-coord2.x;
+        double edge2VectorY = coord3.y-coord2.y;
+        double edge2VectorZ = coord3.z-coord2.z;
 
-        if (dir.dot(n) > 0) {
-            return Vec3.cross(edge2Vector, edge1Vector).normalize();
+        double nx = edge1VectorY*edge2VectorZ - edge1VectorZ*edge2VectorY;
+        double ny = edge1VectorZ*edge2VectorX - edge1VectorX*edge2VectorZ;
+        double nz = edge1VectorX*edge2VectorY - edge1VectorY*edge2VectorX;
+
+        double length = Math.sqrt(nx*nx + ny*ny + nz*nz);
+
+        nx /= length;
+        ny /= length;
+        nz /= length;
+
+        if (dir.x*nx + dir.y*ny + dir.z*nz > 0) {
+            return new Vec3(-nx, -ny, -nz);
         }
 
-        return n;
+        return new Vec3(nx, ny, nz);
     }
 
     @Override
